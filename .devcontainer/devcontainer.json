@@ -1,0 +1,55 @@
+{
+    "name": "go-coffeeshop",
+    "build": {
+        "dockerfile": "Dockerfile-dev",
+        "args": {
+            "VARIANT": "ubuntu-22.04"
+        }
+    },
+    "runArgs": [
+        // Uncomment the next line to use a non-root user. On Linux, this will prevent
+        // new files getting created as root, but you may need to update the USER_UID
+        // and USER_GID in .devcontainer/Dockerfile to match your user if not 1000.
+        "-u",
+        "root",
+        // Mount go mod cache
+        "-v",
+        "coffeeshop-gomodcache:/go/pkg",
+        // Cache vscode exentsions installs and homedir
+        "-v",
+        "coffeeshop-vscodecache:/root/.vscode-server",
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "remoteUser": "root",
+    "containerUser": "root",
+    "forwardPorts": [5000, 8888, 5432, 15672],
+    // Add the IDs of extensions you want installed when the container is created in the array below.
+    "extensions": [
+        // optional:
+        "mutantdino.resourcemonitor",
+        "humao.rest-client",
+        "bungcip.better-toml",
+        "ms-vscode.makefile-tools",
+        "davidanson.vscode-markdownlint",
+        "cweijan.vscode-database-client2",
+        "bierner.markdown-mermaid",
+        "hashicorp.hcl",
+        "fredwangwang.vscode-hcl-format"
+        // "ms-azuretools.vscode-docker",
+        // "ms-kubernetes-tools.vscode-kubernetes-tools",
+        // "42crunch.vscode-openapi",
+        // "eamodio.gitlens",
+    ],
+    "postCreateCommand": "dotnet --list-sdks",
+    "features": {
+        "ghcr.io/devcontainers/features/dotnet:1": {
+            "version": "7.0.202"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:1": {
+            "moby": false
+        },
+        "ghcr.io/devcontainers/features/terraform:1": {}
+    }
+}

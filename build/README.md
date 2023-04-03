@@ -30,5 +30,8 @@ Happy hacking with HashiCorp stack!!!
 
 
 ```bash
-nomad job run product-api-dapr.hcl
+cd build/nomad/jobs
+nomad job run product-api-dapr.nomad.hcl
+nomad job stop product-api-dapr
+nomad system gc
 ```

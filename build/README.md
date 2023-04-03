@@ -35,3 +35,11 @@ nomad job run product-api-dapr.nomad.hcl
 nomad job stop product-api-dapr
 nomad system gc
 ```
+
+```bash
+nomad job run traefik.nomad.hcl
+nomad job run postgresdb.nomad.hcl
+nomad job run counter-api-dapr.nomad.hcl
+nomad job stop counter-api-dapr
+nomad system gc
+```

@@ -5,7 +5,7 @@ job "traefik" {
   group "traefik" {
     network {
       port "web" {
-        static = 80
+        static = 8888
       }
 
       port "websecure" {
@@ -30,7 +30,7 @@ job "traefik" {
       driver = "docker"
 
       config {
-        image        = "traefik:v2.8.1"
+        image        = "traefik:v2.9.9"
         ports        = ["web", "websecure"]
         network_mode = "host"
 
@@ -43,7 +43,7 @@ job "traefik" {
         data = <<EOF
 entryPoints:
   web:
-    address: ":80"
+    address: ":8888"
   websecure:
     address: ":443"
 api:

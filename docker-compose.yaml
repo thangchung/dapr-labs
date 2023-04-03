@@ -1,6 +1,17 @@
 version: "3.7"
 
 services:
+  postgresql:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=P@ssw0rd
+    ports:
+      - 5432:5432
+    networks:
+      - coffeeshop-network
+
   productservice:
     image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi:${IMAGE_TAG:-latest}
     build:
@@ -11,6 +22,75 @@ services:
     ports:
       - "5001:5001"
     restart: always
+    networks:
+      - coffeeshop-network
+
+  productservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "productservice",
+     "-app-port", "5001",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/components/daprConfig.yaml",
+     "-components-path", "/build/dapr/components"]
+    volumes:
+      - "./build/dapr/components/:/build/dapr/components"
+    depends_on:
+      - productservice
+    restart: always
+    network_mode: "service:productservice"
+  
+  counterservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: ./src/CounterService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__counterdb=Server=postgresql;Port=5432;Database=postgres;User Id=postgres;Password=P@ssw0rd
+      - ProductCatalogAppDaprName=productservice
+    ports:
+      - "5002:5002"
+    depends_on:
+      - postgresql
+      - productservice
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  counterservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "counterservice",
+     "-app-port", "5002",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/components/daprConfig.yaml",
+     "-components-path", "/build/dapr/components"]
+    volumes:
+      - "./build/dapr/components/:/build/dapr/components"
+    depends_on:
+      - counterservice
+    restart: always
+    network_mode: "service:counterservice"
+
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - coffeeshop-network
+
+  ############################
+  # Zipkin component
+  ############################
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
     networks:
       - coffeeshop-network
 

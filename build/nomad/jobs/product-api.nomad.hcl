@@ -7,8 +7,6 @@ job "product-api" {
   }
 
   group "svc" {
-    count = 1
-
     network {
       mode = "bridge"
 

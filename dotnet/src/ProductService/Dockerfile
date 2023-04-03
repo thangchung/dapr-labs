@@ -16,7 +16,7 @@ WORKDIR "/src/src/ProductService"
 RUN dotnet build "ProductService.csproj" -c Release -o /app/build 
 
 FROM build AS publish
-RUN dotnet publish "ProductService.csproj" -c Release -o /app/publish --self-contained false --no-restore
+RUN dotnet publish "ProductService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

@@ -4,13 +4,13 @@ using Dapr.Client;
 
 namespace CounterService.Infrastructure.Gateways;
 
-public class ItemRestGateway : IItemGateway
+public class ItemDaprGateway : IItemGateway
 {
     private readonly DaprClient _daprClient;
     private readonly IConfiguration _config;
-    private readonly ILogger<ItemRestGateway> _logger;
+    private readonly ILogger<ItemDaprGateway> _logger;
 
-    public ItemRestGateway(DaprClient daprClient, IConfiguration config, ILogger<ItemRestGateway> logger)
+    public ItemDaprGateway(DaprClient daprClient, IConfiguration config, ILogger<ItemDaprGateway> logger)
     {
         _daprClient = daprClient;
         _config = config;

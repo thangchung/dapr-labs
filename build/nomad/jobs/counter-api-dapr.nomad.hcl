@@ -22,11 +22,11 @@ job "counter-api-dapr" {
 
       tags = [
         "dapr",
-        "traefik.enable=true",
-        "traefik.consulcatalog.connect=true",
-        "traefik.http.routers.api.rule=PathPrefix(`/counter-api`)",
-        "traefik.http.routers.api.middlewares=counter_api_stripprefix",
-        "traefik.http.middlewares.counter_api_stripprefix.stripprefix.prefixes=/counter-api",
+        // "traefik.enable=true",
+        // "traefik.consulcatalog.connect=true",
+        // "traefik.http.routers.api.rule=PathPrefix(`/counter-api`)",
+        // "traefik.http.routers.api.middlewares=counter_api_stripprefix",
+        // "traefik.http.middlewares.counter_api_stripprefix.stripprefix.prefixes=/counter-api",
       ]
       meta {
         DAPR_PORT = "${NOMAD_HOST_PORT_rpc}"
@@ -63,7 +63,7 @@ job "counter-api-dapr" {
         args = [
           "-app-id", "counter-api-dapr-http",
           "-app-port", "${NOMAD_PORT_app}",
-          "-dapr-http-port", "3500",
+          "-dapr-http-port", "${NOMAD_PORT_http}",
           "-config", "local/build/dapr/components/daprConfig.yaml",
           "-resources-path", "local/build/dapr/components",
         ]
@@ -78,20 +78,34 @@ job "counter-api-dapr" {
 
       template {
         data        = <<EOF
-    {{ key "dapr/components/pubsub.yaml" }}
-    EOF
-        destination = "local/build/dapr/components/pubsub.yaml"
-      }
-
-      template {
-        data        = <<EOF
     {{ key "dapr/components/consul.yaml" }}
     EOF
         destination = "local/build/dapr/components/consul.yaml"
       }
 
+      template {
+        data        = <<EOF
+    {{ key "dapr/components/orderup_pubsub.yaml" }}
+    EOF
+        destination = "local/build/dapr/components/orderup_pubsub.yaml"
+      }
+
+      template {
+        data        = <<EOF
+    {{ key "dapr/components/barista_pubsub.yaml" }}
+    EOF
+        destination = "local/build/dapr/components/barista_pubsub.yaml"
+      }
+
+      template {
+        data        = <<EOF
+    {{ key "dapr/components/kitchen_pubsub.yaml" }}
+    EOF
+        destination = "local/build/dapr/components/kitchen_pubsub.yaml"
+      }
+
       resources {
-        memory = 128
+        memory = 100
       }
     }
   }

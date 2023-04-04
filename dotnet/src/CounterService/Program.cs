@@ -27,8 +27,8 @@ builder.WebHost
 
 builder.Services
     .AddHttpContextAccessor()
-    .AddCustomMediatR(new[] {typeof(Order)})
-    .AddCustomValidators(new[] {typeof(Order)});
+    .AddCustomMediatR(new[] { typeof(Order) })
+    .AddCustomValidators(new[] { typeof(Order) });
 
 builder.Services
     .AddPostgresDbContext<MainDbContext>(
@@ -43,8 +43,8 @@ builder.Services
 //     .AddOTelTracing(builder.Configuration)
 //     .AddOTelMetrics(builder.Configuration);
 
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<IItemGateway, ItemRestGateway>();
+// builder.Services.AddHttpClient();
+builder.Services.AddScoped<IItemGateway, ItemDaprGateway>();
 builder.Services.AddDaprClient();
 builder.Services.AddSingleton(new JsonSerializerOptions()
 {
@@ -73,14 +73,14 @@ app.UseCloudEvents();
 app.UseEndpoints(endpoints =>
     {
         endpoints.MapSubscribeHandler();
-        
+
         var orderUpTopic = new TopicOptions
         {
             PubsubName = "orderuppubsub",
             Name = "orderup",
             DeadLetterTopic = "orderupDeadLetterTopic"
         };
-        
+
         endpoints.MapPost(
             "subscribe_BaristaOrderUpdated",
             async (BaristaOrderUpdated @event, ISender sender) => await sender.Send(

@@ -12,11 +12,11 @@ job "postgres-db" {
 
     service {
       name = "postgres-db"
-      port = "postgres_db"
+      port = "5432"
 
-      connect {
-        sidecar_service {}
-      }
+      tags = [
+        "addr_ip=${attr.unique.network.ip-address}",
+      ]
     }
 
     task "postgres-db" {

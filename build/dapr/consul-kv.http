@@ -1,0 +1,31 @@
+@host = http://127.0.0.1:8500
+
+###
+PUT {{host}}/v1/kv/dapr/daprConfig.yaml HTTP/1.1
+content-type: application/json
+
+< ./components/consul.yml
+
+###
+PUT {{host}}/v1/kv/dapr/components/consul.yaml HTTP/1.1
+content-type: application/json
+
+< ./components/consul.yml
+
+###
+PUT {{host}}/v1/kv/dapr/components/orderup_pubsub.yaml HTTP/1.1
+content-type: application/json
+
+< ./components/orderup_pubsub.yaml
+
+###
+PUT {{host}}/v1/kv/dapr/components/barista_pubsub.yaml HTTP/1.1
+content-type: application/json
+
+< ./components/barista_pubsub.yaml
+
+###
+PUT {{host}}/v1/kv/dapr/components/kitchen_pubsub.yaml HTTP/1.1
+content-type: application/json
+
+< ./components/kitchen_pubsub.yaml

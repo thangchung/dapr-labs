@@ -1,3 +1,4 @@
+
 apiVersion: dapr.io/v1alpha1
 kind: Configuration
 metadata:
@@ -7,6 +8,18 @@ spec:
     component: "consul"
     configuration:
       selfRegister: true
+      client:
+        address: # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500" 
+      checks:
+      - name: "Dapr Health Status"
+        checkID: "daprHealth: - ${APP_ID} - ${CONSUL_HTTP_ADDR}"
+        interval: "15s"
+        tcp: # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500"
+      tags:
+        - "dapr"
+      queryOptions:
+        useCache: true
+        filter: "Checks.ServiceTags contains dapr"
   tracing:
     samplingRate: "1"
     zipkin:

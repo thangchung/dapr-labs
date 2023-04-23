@@ -1,0 +1,56 @@
+{
+    "name": "coffeeshop-rs",
+    "build": {
+        "dockerfile": "Dockerfile-dev",
+        "args": {
+            "VARIANT": "ubuntu-22.04"
+        }
+    },
+    "runArgs": [
+        "-u",
+        "root",
+        "-v",
+        "coffeeshop-gomodcache:/go/pkg",
+        "-v",
+        "coffeeshop-vscodecache:/root/.vscode-server",
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "remoteUser": "root",
+    "containerUser": "root",
+    "forwardPorts": [ 5432 ],
+    "extensions": [
+        "mutantdino.resourcemonitor",
+        "humao.rest-client",
+        "bungcip.better-toml",
+        "ms-vscode.makefile-tools",
+        "davidanson.vscode-markdownlint",
+        "cweijan.vscode-database-client2",
+        "bierner.markdown-mermaid",
+        "hashicorp.hcl",
+        "fredwangwang.vscode-hcl-format",
+
+        "vadimcn.vscode-lldb",
+        "matklad.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "irongeek.vscode-env"
+        // "ms-azuretools.vscode-docker",
+        // "ms-kubernetes-tools.vscode-kubernetes-tools",
+    ],
+    "postCreateCommand": "cargo install sea-orm-cli",
+    "features": {
+        "ghcr.io/devcontainers/features/rust:1": {
+            "version": "1.69.0"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:1": {
+            "moby": false
+        },
+        "ghcr.io/devcontainers/features/terraform:1": {
+            "version": "1.4.5"
+        },
+        "ghcr.io/dapr/cli/dapr-cli:0": {},
+        "ghcr.io/christophermacgown/devcontainer-features/direnv:1" : {}
+    }
+}

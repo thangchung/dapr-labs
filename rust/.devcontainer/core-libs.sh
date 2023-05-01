@@ -1,35 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# install apt-add-repository
-apt update 
-apt install software-properties-common -y
-apt install pkg-config libssl-dev -y # FIXED: install sea-orm-cli throw error => failed to run custom build command for `openssl-sys v0.9.86`
-apt update
+apt-get update && apt-get install -y \
+    software-properties-common \
+    bash \
+    git \
+    curl \
+    npm \
+    build-essential libssl-dev pkg-config glibc-source \
+    ca-certificates
 
-echo "Adding HashiCorp GPG key and repo..."
-curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
-apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-apt-get update
-
-# install cni plugins https://www.nomadproject.io/docs/integrations/consul-connect#cni-plugins
-echo "Installing cni plugins..."
-curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/releases/download/v1.1.1/cni-plugins-linux-$( [ $(uname -m) = aarch64 ] && echo arm64 || echo amd64)"-v1.1.1.tgz
-sudo mkdir -p /opt/cni/bin
-sudo tar -C /opt/cni/bin -xzf cni-plugins.tgz
-sudo rm ./cni-plugins.tgz
-
-echo "Installing Consul..."
-sudo apt-get install consul -y
-
-echo "Installing Nomad..."
-sudo apt-get install nomad -y
-
-echo "Installing Vault..."
-sudo apt-get install vault -y
-
-source /etc/environment
-
-# WSL2-hack - Nomad cannot run on wsl2 image, then we need to work-around
-sudo mkdir -p /lib/modules/$(uname -r)/
-echo '_/bridge.ko' | sudo tee -a /lib/modules/$(uname -r)/modules.builtin
+# Install Rust
+curl https://sh.rustup.rs -sSf | bash -s -- -y
+PATH="/root/.cargo/bin:${PATH}"
+# RUN rustup target add wasm32-wasi
+cargo install sea-orm-cli

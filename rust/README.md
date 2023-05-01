@@ -1,5 +1,13 @@
 # Rust CoffeeShop App
 
+## Ref projects
+
+- [SeaQL/sea-orm/axum_example](https://github.com/SeaQL/sea-orm/tree/master/examples/axum_example)
+- [vietnam-devs/coolstore-microservices](https://github.com/vietnam-devs/coolstore-microservices/tree/feature/upgrade-net6/src/rust)
+- [fermyon/spin](https://github.com/fermyon/spin)
+- [AxumCourse/axum-with-seaorm](https://github.com/AxumCourse/axum-with-seaorm)
+- [solidiquis/knodis](https://github.com/solidiquis/knodis)
+
 ## REST APIs
 
 ### GET all item-types

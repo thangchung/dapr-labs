@@ -1,0 +1,26 @@
+[package]
+name = "coffeeshop-rs"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = "1.69"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Thang Chung <thangchung.onthenet@gmail.com>"]
+edition = "2021"
+
+default-run = "product_api"
+
+[[bin]]
+name = "product_api"
+path = "src/bin/product/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+axum = { version = "0.6.18" }
+clap = "4.2"
+config = "0.13"
+dotenv = "0.15"
+slog = "2.7"
+tokio = { version = "1.28", features = ["full"] }

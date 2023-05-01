@@ -6,20 +6,16 @@
             "VARIANT": "ubuntu-22.04"
         }
     },
-    "runArgs": [
-        "-u",
-        "root",
-        "-v",
-        "coffeeshop-gomodcache:/go/pkg",
-        "-v",
-        "coffeeshop-vscodecache:/root/.vscode-server",
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined"
-    ],
     "remoteUser": "root",
     "containerUser": "root",
-    "forwardPorts": [ 5432 ],
+    "settings": {
+        "lldb.executable": "/usr/bin/lldb",
+        // VS Code don't watch files under ./target
+        "files.watcherExclude": {
+            "**/target/**": true
+        },
+        "rust-analyzer.checkOnSave.command": "clippy"
+    },
     "extensions": [
         "mutantdino.resourcemonitor",
         "humao.rest-client",
@@ -28,29 +24,20 @@
         "davidanson.vscode-markdownlint",
         "cweijan.vscode-database-client2",
         "bierner.markdown-mermaid",
-        "hashicorp.hcl",
-        "fredwangwang.vscode-hcl-format",
-
         "vadimcn.vscode-lldb",
-        "matklad.rust-analyzer",
+        "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
         "serayuzgur.crates",
+        "esbenp.prettier-vscode",
+        "foxundermoon.shell-format",
         "irongeek.vscode-env"
-        // "ms-azuretools.vscode-docker",
-        // "ms-kubernetes-tools.vscode-kubernetes-tools",
     ],
-    "postCreateCommand": "cargo install sea-orm-cli",
+    "postCreateCommand": "cargo --version",
     "features": {
-        "ghcr.io/devcontainers/features/rust:1": {
-            "version": "1.69.0"
-        },
         "ghcr.io/devcontainers/features/docker-in-docker:1": {
             "moby": false
         },
-        "ghcr.io/devcontainers/features/terraform:1": {
-            "version": "1.4.5"
-        },
         "ghcr.io/dapr/cli/dapr-cli:0": {},
-        "ghcr.io/christophermacgown/devcontainer-features/direnv:1" : {}
+        "ghcr.io/christophermacgown/devcontainer-features/direnv:1": {}
     }
 }

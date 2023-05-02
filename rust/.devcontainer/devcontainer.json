@@ -32,6 +32,7 @@
         "foxundermoon.shell-format",
         "irongeek.vscode-env"
     ],
+    "otherPortsAttributes": { "onAutoForward" : "ignore" },
     "postCreateCommand": "cargo --version",
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:1": {

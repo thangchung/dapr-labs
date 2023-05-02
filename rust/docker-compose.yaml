@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  productservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/product/Dockerfile
+    ports:
+      - "5001:5001"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+networks:
+  coffeeshop-network:

@@ -1,0 +1,15 @@
+[package]
+name = "barista-entity"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+publish = false
+
+
+[lib]
+name = "barista_entity"
+path = "src/lib.rs"
+
+[dependencies]
+sea-orm = "0.11"
+serde = { version = "1", features = ["derive"] }

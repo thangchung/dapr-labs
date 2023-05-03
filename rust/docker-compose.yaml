@@ -1,16 +1,37 @@
 version: "3.7"
 
 services:
-  productservice:
-    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
-    build:
-      context: .
-      dockerfile: src/bin/product/Dockerfile
+  postgresql:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=P@ssw0rd
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
     ports:
-      - "5001:5001"
-    restart: always
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/seed_data.sql:/docker-entrypoint-initdb.d/seed_data.sql
     networks:
       - coffeeshop-network
+  
+  # productservice:
+  #   image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: src/bin/product/Dockerfile
+  #   ports:
+  #     - "5001:5001"
+  #   restart: always
+  #   networks:
+  #     - coffeeshop-network
 
 networks:
   coffeeshop-network:

@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{time::Duration, env};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -8,27 +8,37 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use clap::Parser;
 use serde::Serialize;
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
-#[derive(Debug, Serialize, Clone, Copy)]
-struct ItemType<'a> {
-    name: &'a str,
+#[derive(Debug, Parser)]
+struct Config {
+    #[clap(default_value = "0.0.0.0", env)]
+    host: String,
+    #[clap(default_value = "5001", env)]
+    app_port: u16,
+}
+
+#[derive(Debug, Serialize, Clone)]
+struct ItemType {
+    name: String,
     item_type: i8,
     price: f32,
-    image: &'a str,
+    image: String,
 }
 
 #[derive(Clone)]
-struct AppState<'a> {
-    item_types: Vec<ItemType<'a>>,
+struct AppState {
+    item_types: Vec<ItemType>,
 }
 
 #[tokio::main]
 async fn main() {
+    env::set_var("RUST_LOG", "debug");
     dotenv::dotenv().ok();
 
     tracing_subscriber::registry()
@@ -42,64 +52,64 @@ async fn main() {
     let state = AppState {
         item_types: vec![
             ItemType {
-                name: "CAPPUCCINO",
+                name: "CAPPUCCINO".to_string(),
                 item_type: 0,
                 price: 4.5,
-                image: "img/CAPPUCCINO.png",
+                image: "img/CAPPUCCINO.png".to_string(),
             },
             ItemType {
-                name: "COFFEE_BLACK",
+                name: "COFFEE_BLACK".to_string(),
                 item_type: 1,
                 price: 3.0,
-                image: "img/COFFEE_BLACK.png",
+                image: "img/COFFEE_BLACK.png".to_string(),
             },
             ItemType {
-                name: "COFFEE_WITH_ROOM",
+                name: "COFFEE_WITH_ROOM".to_string(),
                 item_type: 2,
                 price: 3.0,
-                image: "img/COFFEE_WITH_ROOM.png",
+                image: "img/COFFEE_WITH_ROOM.png".to_string(),
             },
             ItemType {
-                name: "ESPRESSO",
+                name: "ESPRESSO".to_string(),
                 item_type: 3,
                 price: 3.5,
-                image: "img/ESPRESSO.png",
+                image: "img/ESPRESSO.png".to_string(),
             },
             ItemType {
-                name: "ESPRESSO_DOUBLE",
+                name: "ESPRESSO_DOUBLE".to_string(),
                 item_type: 4,
                 price: 4.5,
-                image: "img/ESPRESSO_DOUBLE.png",
+                image: "img/ESPRESSO_DOUBLE.png".to_string(),
             },
             ItemType {
-                name: "LATTE",
+                name: "LATTE".to_string(),
                 item_type: 5,
                 price: 4.5,
-                image: "img/LATTE.png",
+                image: "img/LATTE.png".to_string(),
             },
             ItemType {
-                name: "CAKEPOP",
+                name: "CAKEPOP".to_string(),
                 item_type: 6,
                 price: 2.5,
-                image: "img/CAKEPOP.png",
+                image: "img/CAKEPOP.png".to_string(),
             },
             ItemType {
-                name: "CROISSANT",
+                name: "CROISSANT".to_string(),
                 item_type: 7,
                 price: 3.25,
-                image: "img/CROISSANT.png",
+                image: "img/CROISSANT.png".to_string(),
             },
             ItemType {
-                name: "MUFFIN",
+                name: "MUFFIN".to_string(),
                 item_type: 8,
                 price: 3.0,
-                image: "img/MUFFIN.png",
+                image: "img/MUFFIN.png".to_string(),
             },
             ItemType {
-                name: "CROISSANT_CHOCOLATE",
+                name: "CROISSANT_CHOCOLATE".to_string(),
                 item_type: 9,
                 price: 3.5,
-                image: "img/CROISSANT_CHOCOLATE.png",
+                image: "img/CROISSANT_CHOCOLATE.png".to_string(),
             },
         ],
     };
@@ -130,7 +140,8 @@ async fn main() {
         )
         .with_state(state);
 
-    let addr: &str = "0.0.0.0:5001";
+    let config = Config::parse();
+    let addr: String = format!("{}:{}", config.host.as_str(), config.app_port);
 
     tracing::debug!("listening on {}", addr);
 
@@ -142,18 +153,17 @@ async fn main() {
 
 async fn item_by_types_handler(
     Path(types): Path<String>,
-    State(app): State<AppState<'static>>,
+    State(app): State<AppState>,
 ) -> impl IntoResponse {
-    // tracing::info!("GET: item_by_types_handler");
-
     let mut temp: Vec<ItemType> = Vec::new();
 
     for i in app.item_types {
         let parts = types.split(',');
 
+        let ii = i.clone();
         for j in parts {
-            if i.item_type.to_string().as_str() == j {
-                temp.push(i)
+            if ii.item_type.to_string().as_str() == j {
+                temp.push(ii.clone())
             }
         }
     }
@@ -161,10 +171,8 @@ async fn item_by_types_handler(
     Json(temp)
 }
 
-async fn item_types_handler(State(app): State<AppState<'static>>) -> impl IntoResponse {
-    // tracing::info!("GET: item_types_handler");
-
-    Json(app.item_types.clone())
+async fn item_types_handler(State(app): State<AppState>) -> impl IntoResponse {
+    Json(app.item_types)
 }
 
 async fn home_handler() -> impl IntoResponse {

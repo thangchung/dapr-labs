@@ -8,6 +8,32 @@
 - [AxumCourse/axum-with-seaorm](https://github.com/AxumCourse/axum-with-seaorm)
 - [solidiquis/knodis](https://github.com/solidiquis/knodis)
 
+## Dapr
+
+```bash
+dapr run \
+    --app-id productapi \
+    --app-port 5001 \
+    --dapr-http-port 3500 \
+    --resources-path components \
+    --config components/daprConfig.yaml \
+    -- cargo run --bin product_api
+```
+
+- https://docs.dapr.io/reference/environment/
+
+## Database up
+
+Before `docker compose up`, pls remember to run `sudo rm -rf postgres-data`
+
+```sql
+sea-orm-cli generate entity -l -s order -o crates/counter_entity/src
+sea-orm-cli generate entity -l -s barista -o crates/barista_entity/src
+sea-orm-cli generate entity -l -s kitchen -o crates/kitchen_entity/src
+```
+
+- https://gist.github.com/ynwd/f39c78fc4c62b0116425f333be2b9f77
+
 ## REST APIs
 
 ### GET all item-types
@@ -180,3 +206,4 @@ Output:
 ## Ref articles
 
 - https://carlosmv.hashnode.dev/adding-logging-and-tracing-to-an-axum-app-rust
+- https://www.thorsten-hans.com/working-with-environment-variables-in-rust/

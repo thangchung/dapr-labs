@@ -5,3 +5,4 @@ tests/**/Cargo.lock
 crates/**/Cargo.lock
 examples/**/Cargo.lock
 .DS_Store
+postgres-data

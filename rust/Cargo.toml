@@ -10,21 +10,36 @@ version = "0.1.0"
 authors = ["Thang Chung <thangchung.onthenet@gmail.com>"]
 edition = "2021"
 
-default-run = "product_api"
+default-run = "counter_api"
 
 [[bin]]
 name = "product_api"
 path = "src/bin/product/main.rs"
 
+[[bin]]
+name = "counter_api"
+path = "src/bin/counter/main.rs"
+
+[workspace]
+members = ["crates/*"]
+
 [dependencies]
 anyhow = "1.0"
 axum = { version = "0.6.18" }
-clap = "4.2"
+clap = { version = "4.2", features = ["derive", "env"] }
 config = "0.13"
 dotenv = "0.15"
+sea-orm = { version = "0.11", features = [
+    "debug-print",
+    "runtime-tokio-native-tls",
+    "sqlx-postgres",
+] }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.28", features = ["full"] }
 tower = { version = "0.4", features = ["util", "timeout"] }
 tower-http = { version = "0.4.0", features = ["add-extension", "trace"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"]}
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1.0", features = ["serde", "v4"] }
+counter-entity = { path = "crates/counter-entity", version = "0.1.0" }
+chrono = "0.4"

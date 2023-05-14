@@ -13,15 +13,13 @@ use axum::{
 use clap::Parser;
 use counter_entity::{
     line_items,
-    line_items::Entity as LineItemEntity,
     orders::Entity as Order,
     orders::{self},
 };
 use sea_orm::{
     prelude::Decimal,
-    sea_query::{Alias, Expr},
-    ActiveModelTrait, Database, DatabaseConnection, EntityTrait, JoinType, QuerySelect, Set,
-    TransactionTrait,
+    ActiveModelTrait, Database, DatabaseConnection, EntityTrait, ModelTrait,
+    Set, TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
 use tower::{BoxError, ServiceBuilder};
@@ -126,34 +124,58 @@ struct OrderModel {
     pub order_source: i32,
     pub loyalty_member_id: Uuid,
     pub order_status: i32,
+    pub order_lines: Vec<OrderLineModel>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct VecOrderLineModel(Vec<OrderLineModel>);
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OrderLineModel {
+    pub id: Uuid,
+    pub item_type: i32,
+    pub name: String,
+    pub price: Decimal,
+    pub item_status: i32,
+    pub is_barista_order: bool,
+    pub order_id: Option<Uuid>,
 }
 
 async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
-    match Order::find()
-        .column_as(
-            Expr::tbl(Alias::new("line_items"), line_items::Column::Name).into_simple_expr(),
-            "ItemName",
-        )
-        .join_rev(
-            JoinType::InnerJoin,
-            LineItemEntity::belongs_to(Order)
-                .from(line_items::Column::OrderId)
-                .to(orders::Column::Id)
-                .into(),
-        )
-        .select_only()
-        .all(&app.db_conn)
-        .await
-    {
+    let ord = Order::find().all(&app.db_conn).await;
+
+    match ord {
         Ok(result) => {
             let mut temp = vec![];
-            for item in result {
-                temp.push(OrderModel {
-                    id: item.id,
-                    loyalty_member_id: item.loyalty_member_id,
-                    order_source: item.order_source,
-                    order_status: item.order_status,
-                })
+            for order in result {
+                let mut order_model = OrderModel {
+                    id: order.id,
+                    loyalty_member_id: order.loyalty_member_id,
+                    order_source: order.order_source,
+                    order_status: order.order_status,
+                    order_lines: Vec::new(),
+                };
+
+                let line_items = order
+                    .find_related(line_items::Entity)
+                    .all(&app.db_conn)
+                    .await
+                    .unwrap_or_default();
+                for line_item in line_items {
+                    order_model.order_lines.push(OrderLineModel {
+                        id: line_item.id,
+                        is_barista_order: line_item.is_barista_order,
+                        item_status: line_item.item_status,
+                        item_type: line_item.item_type,
+                        name: line_item.name,
+                        order_id: line_item.order_id,
+                        price: line_item.price,
+                    })
+                }
+
+                temp.push(order_model);
             }
 
             (StatusCode::OK, Json(temp))

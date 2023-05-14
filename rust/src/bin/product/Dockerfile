@@ -14,7 +14,7 @@ COPY ./src/ ./src/
 RUN rm ./target/release/deps/product_api*
 RUN cargo build --bin product_api --release
 
-FROM debian:buster-slim
+FROM debian:bullseye
 COPY --from=build /coffeeshop/target/release/product_api .
 
 CMD ["./product_api"]

@@ -33,5 +33,18 @@ services:
   #   networks:
   #     - coffeeshop-network
 
+  # counterservice:
+  #   image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi-rs:${IMAGE_TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: src/bin/counter/Dockerfile
+  #   environment:
+  #     - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+  #   ports:
+  #     - "5002:5002"
+  #   restart: always
+  #   networks:
+  #     - coffeeshop-network
+
 networks:
   coffeeshop-network:

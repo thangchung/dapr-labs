@@ -20,6 +20,10 @@ path = "src/bin/product/main.rs"
 name = "counter_api"
 path = "src/bin/counter/main.rs"
 
+[profile.release]
+opt-level = 2
+debug = true
+
 [workspace]
 members = ["crates/*"]
 
@@ -42,4 +46,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1.0", features = ["serde", "v4"] }
 counter-entity = { path = "crates/counter-entity", version = "0.1.0" }
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }

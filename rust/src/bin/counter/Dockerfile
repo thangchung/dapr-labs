@@ -5,6 +5,7 @@ WORKDIR /coffeeshop
 
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
+COPY ./crates/ ./crates/
 COPY ./src/bin/counter/main.rs ./src/bin/counter/
 RUN cargo build --bin counter_api --release
 
@@ -14,7 +15,8 @@ COPY ./src/ ./src/
 RUN rm ./target/release/deps/counter_api*
 RUN cargo build --bin counter_api --release
 
-FROM debian:buster-slim
+FROM debian:bullseye
+
 COPY --from=build /coffeeshop/target/release/counter_api .
 
 CMD ["./counter_api"]

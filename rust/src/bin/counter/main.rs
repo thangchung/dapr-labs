@@ -11,9 +11,19 @@ use axum::{
     Json, Router,
 };
 use clap::Parser;
-use counter_entity::{line_items, orders, orders::Entity as Order};
-use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, EntityTrait, Set};
-use serde::Deserialize;
+use counter_entity::{
+    line_items,
+    line_items::Entity as LineItemEntity,
+    orders::Entity as Order,
+    orders::{self},
+};
+use sea_orm::{
+    prelude::Decimal,
+    sea_query::{Alias, Expr},
+    ActiveModelTrait, Database, DatabaseConnection, EntityTrait, JoinType, QuerySelect, Set,
+    TransactionTrait,
+};
+use serde::{Deserialize, Serialize};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
@@ -58,6 +68,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(home_handler))
+        .route("/v1/api/fulfillment-orders", get(get_order_handler))
         .route("/v1/api/orders", post(place_order_handler))
         .layer(
             ServiceBuilder::new()
@@ -108,10 +119,58 @@ struct PlaceOrder {
     timestamp: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OrderModel {
+    pub id: Uuid,
+    pub order_source: i32,
+    pub loyalty_member_id: Uuid,
+    pub order_status: i32,
+}
+
+async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
+    match Order::find()
+        .column_as(
+            Expr::tbl(Alias::new("line_items"), line_items::Column::Name).into_simple_expr(),
+            "ItemName",
+        )
+        .join_rev(
+            JoinType::InnerJoin,
+            LineItemEntity::belongs_to(Order)
+                .from(line_items::Column::OrderId)
+                .to(orders::Column::Id)
+                .into(),
+        )
+        .select_only()
+        .all(&app.db_conn)
+        .await
+    {
+        Ok(result) => {
+            let mut temp = vec![];
+            for item in result {
+                temp.push(OrderModel {
+                    id: item.id,
+                    loyalty_member_id: item.loyalty_member_id,
+                    order_source: item.order_source,
+                    order_status: item.order_status,
+                })
+            }
+
+            (StatusCode::OK, Json(temp))
+        }
+        Err(err) => {
+            // bail!("err: {}", err)
+            (StatusCode::OK, Json(vec![]))
+        }
+    }
+}
+
 async fn place_order_handler(
     State(app): State<AppState>,
     Json(input): Json<PlaceOrder>,
 ) -> impl IntoResponse {
+    let txn = app.db_conn.begin().await.unwrap();
+
     let result = orders::ActiveModel {
         order_source: Set(input.order_source.unwrap_or(0)),
         loyalty_member_id: Set(input.loyalty_member_id.unwrap_or_default()),
@@ -119,26 +178,43 @@ async fn place_order_handler(
         ..Default::default()
     }
     .save(&app.db_conn)
-    .await;
+    .await
+    .unwrap();
 
-    //todo
-    let r = match result {
-        Ok(_) => "",
-        Err(_) => ""
-    };
-
-    // for barista_item in input.barista_items {
-    //     line_items::ActiveModel {
-    //         id: Set(Uuid::new_v4()),
-    //         name: Set(barista_item.item_type),
-    //         ..Default::default()
-    //     }
-    // }
-
-    match Order::find().all(&app.db_conn).await {
-        Ok(_) => (StatusCode::CREATED, Json("created".to_string())),
-        Err(_) => (StatusCode::BAD_REQUEST, Json("err".to_string())),
+    for barista_item in input.barista_items.unwrap() {
+        let _ = line_items::ActiveModel {
+            item_type: Set(barista_item.item_type.unwrap_or_default()),
+            name: Set(barista_item.item_type.unwrap_or_default().to_string()),
+            price: Set(Decimal::from_f32_retain(0.0).unwrap_or_default()),
+            item_status: Set(0),
+            is_barista_order: Set(true),
+            order_id: result.id.clone().into(),
+            ..Default::default()
+        }
+        .save(&app.db_conn)
+        .await
+        .unwrap();
     }
+
+    // kitchen
+    for kitchen_item in input.kitchen_items.unwrap() {
+        let _ = line_items::ActiveModel {
+            item_type: Set(kitchen_item.item_type.unwrap_or_default()),
+            name: Set(kitchen_item.item_type.unwrap_or_default().to_string()),
+            price: Set(Decimal::from_f32_retain(0.0).unwrap_or_default()),
+            item_status: Set(0),
+            is_barista_order: Set(false),
+            order_id: result.id.clone().into(),
+            ..Default::default()
+        }
+        .save(&app.db_conn)
+        .await
+        .unwrap();
+    }
+
+    txn.commit().await.unwrap();
+
+    result.id.unwrap().to_string()
 }
 
 async fn home_handler() -> impl IntoResponse {

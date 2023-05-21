@@ -1,20 +1,9 @@
 FROM rust:1.69 as build
 
-RUN USER=root cargo new --bin coffeeshop
-WORKDIR /coffeeshop
-
-COPY ./Cargo.lock ./Cargo.lock
-COPY ./Cargo.toml ./Cargo.toml
-COPY ./src/bin/product/main.rs ./src/bin/product/
-RUN cargo build --bin product_api --release
-
-RUN rm src/*.rs
-COPY ./src/ ./src/
-
-RUN rm ./target/release/deps/product_api*
+ADD --chown=root:root . ./
 RUN cargo build --bin product_api --release
 
 FROM debian:bullseye
-COPY --from=build /coffeeshop/target/release/product_api .
+COPY --from=build /target/release/product_api .
 
 CMD ["./product_api"]

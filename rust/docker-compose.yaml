@@ -22,29 +22,33 @@ services:
     networks:
       - coffeeshop-network
   
-  # productservice:
-  #   image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
-  #   build:
-  #     context: .
-  #     dockerfile: src/bin/product/Dockerfile
-  #   ports:
-  #     - "5001:5001"
-  #   restart: always
-  #   networks:
-  #     - coffeeshop-network
+  productservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/product/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+    ports:
+      - "5001:5001"
+    restart: always
+    networks:
+      - coffeeshop-network
 
-  # counterservice:
-  #   image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi-rs:${IMAGE_TAG:-latest}
-  #   build:
-  #     context: .
-  #     dockerfile: src/bin/counter/Dockerfile
-  #   environment:
-  #     - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
-  #   ports:
-  #     - "5002:5002"
-  #   restart: always
-  #   networks:
-  #     - coffeeshop-network
+  counterservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/counter/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - PRODUCT_URL=http://productservice:5001
+    ports:
+      - "5002:5002"
+    restart: always
+    networks:
+      - coffeeshop-network
 
 networks:
   coffeeshop-network:

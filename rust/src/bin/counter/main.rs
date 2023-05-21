@@ -11,15 +11,10 @@ use axum::{
     Json, Router,
 };
 use clap::Parser;
-use counter_entity::{
-    line_items,
-    orders::Entity as Order,
-    orders::{self},
-};
+use counter_entity::{line_items, orders, orders::Entity as Order};
 use sea_orm::{
-    prelude::Decimal,
-    ActiveModelTrait, Database, DatabaseConnection, EntityTrait, ModelTrait,
-    Set, TransactionTrait,
+    prelude::Decimal, ActiveModelTrait, Database, DatabaseConnection, EntityTrait, ModelTrait, Set,
+    TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
 use tower::{BoxError, ServiceBuilder};
@@ -28,18 +23,21 @@ use tracing::Level;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 struct Config {
-    #[clap(default_value = "0.0.0.0", env)]
+    #[clap(default_value = "localhost", env)]
     host: String,
     #[clap(default_value = "5002", env)]
     app_port: u16,
     #[clap(default_value = "postgres://postgres:P@ssw0rd@127.0.0.1/postgres", env)]
     database_url: String,
+    #[clap(default_value = "http://localhost:5001", env)]
+    product_url: String,
 }
 
 #[derive(Clone)]
 struct AppState {
+    config: Config,
     db_conn: DatabaseConnection,
 }
 
@@ -58,11 +56,14 @@ async fn main() {
 
     let config = Config::parse();
 
-    let db_conn: DatabaseConnection = Database::connect(config.database_url)
+    let db_conn: DatabaseConnection = Database::connect(&config.database_url)
         .await
         .expect("Database connection failed");
 
-    let state = AppState { db_conn };
+    let state = AppState {
+        config: config.clone(),
+        db_conn,
+    };
 
     let app = Router::new()
         .route("/", get(home_handler))
@@ -101,6 +102,7 @@ async fn main() {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct PlaceOrderItem {
     item_type: Option<i32>,
 }
@@ -187,6 +189,13 @@ async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
     }
 }
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ItemTypeDto {
+    price: f32,
+    item_type: i32,
+}
+
 async fn place_order_handler(
     State(app): State<AppState>,
     Json(input): Json<PlaceOrder>,
@@ -203,35 +212,72 @@ async fn place_order_handler(
     .await
     .unwrap();
 
-    for barista_item in input.barista_items.unwrap() {
-        let _ = line_items::ActiveModel {
-            item_type: Set(barista_item.item_type.unwrap_or_default()),
-            name: Set(barista_item.item_type.unwrap_or_default().to_string()),
-            price: Set(Decimal::from_f32_retain(0.0).unwrap_or_default()),
-            item_status: Set(0),
-            is_barista_order: Set(true),
-            order_id: result.id.clone().into(),
-            ..Default::default()
+    // barista
+    let barista_items_vec = input.barista_items.unwrap();
+    if barista_items_vec.iter().len() > 0 {
+        let params = params_process(&barista_items_vec);
+        let product_items = get_product_items(&app.config.product_url, params).await;
+        tracing::debug!("product_items: {:?}", product_items);
+
+        for barista_item in barista_items_vec {
+            let product_item_result = product_items
+                .clone()
+                .into_iter()
+                .find(|i| i.item_type == barista_item.item_type.unwrap_or_default());
+
+            let price = if let Some(product_item) = product_item_result {
+                product_item.price
+            } else {
+                0.0
+            };
+
+            let _ = line_items::ActiveModel {
+                item_type: Set(barista_item.item_type.unwrap_or_default()),
+                name: Set(barista_item.item_type.unwrap_or_default().to_string()),
+                price: Set(Decimal::from_f32_retain(price).unwrap_or_default()),
+                item_status: Set(0),
+                is_barista_order: Set(true),
+                order_id: result.id.clone().into(),
+                ..Default::default()
+            }
+            .save(&app.db_conn)
+            .await
+            .unwrap();
         }
-        .save(&app.db_conn)
-        .await
-        .unwrap();
     }
 
     // kitchen
-    for kitchen_item in input.kitchen_items.unwrap() {
-        let _ = line_items::ActiveModel {
-            item_type: Set(kitchen_item.item_type.unwrap_or_default()),
-            name: Set(kitchen_item.item_type.unwrap_or_default().to_string()),
-            price: Set(Decimal::from_f32_retain(0.0).unwrap_or_default()),
-            item_status: Set(0),
-            is_barista_order: Set(false),
-            order_id: result.id.clone().into(),
-            ..Default::default()
+    let kitchen_items_vec = input.kitchen_items.unwrap();
+    if kitchen_items_vec.iter().len() > 0 {
+        let params = params_process(&kitchen_items_vec);
+        let product_items = get_product_items(&app.config.product_url, params).await;
+        tracing::debug!("product_items: {:?}", product_items);
+
+        for kitchen_item in kitchen_items_vec {
+            let product_item_result = product_items
+                .clone()
+                .into_iter()
+                .find(|i| i.item_type == kitchen_item.item_type.unwrap_or_default());
+
+            let price = if let Some(product_item) = product_item_result {
+                product_item.price
+            } else {
+                0.0
+            };
+
+            let _ = line_items::ActiveModel {
+                item_type: Set(kitchen_item.item_type.unwrap_or_default()),
+                name: Set(kitchen_item.item_type.unwrap_or_default().to_string()),
+                price: Set(Decimal::from_f32_retain(price).unwrap_or_default()),
+                item_status: Set(0),
+                is_barista_order: Set(false),
+                order_id: result.id.clone().into(),
+                ..Default::default()
+            }
+            .save(&app.db_conn)
+            .await
+            .unwrap();
         }
-        .save(&app.db_conn)
-        .await
-        .unwrap();
     }
 
     txn.commit().await.unwrap();
@@ -241,4 +287,33 @@ async fn place_order_handler(
 
 async fn home_handler() -> impl IntoResponse {
     StatusCode::OK
+}
+
+fn params_process(items_vec: &[PlaceOrderItem]) -> String {
+    let params = items_vec.iter().fold("".to_string(), |acc, x| {
+        if let Some(item_type) = x.item_type {
+            tracing::debug!("item_type: {:?}", x);
+            format!("{acc},{}", item_type)
+        } else {
+            "".to_string()
+        }
+    });
+
+    params
+}
+
+async fn get_product_items(product_url: &str, params: String) -> Vec<ItemTypeDto> {
+    let url = format!(
+        "{}/v1/api/items-by-types/{}",
+        product_url,
+        params.trim_start_matches(',')
+    );
+    tracing::debug!("url: {}", url);
+
+    reqwest::get(url)
+        .await
+        .unwrap()
+        .json::<Vec<ItemTypeDto>>()
+        .await
+        .unwrap()
 }

@@ -17,13 +17,14 @@ use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::Subs
 
 #[derive(Debug, Parser)]
 struct Config {
-    #[clap(default_value = "0.0.0.0", env)]
+    #[clap(default_value = "localhost", env)]
     host: String,
     #[clap(default_value = "5001", env)]
     app_port: u16,
 }
 
 #[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 struct ItemType {
     name: String,
     item_type: i8,

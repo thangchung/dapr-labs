@@ -14,10 +14,18 @@
 dapr run \
     --app-id productapi \
     --app-port 5001 \
-    --dapr-http-port 3500 \
     --resources-path components \
     --config components/daprConfig.yaml \
     -- cargo run --bin product_api
+```
+
+```bash
+dapr run \
+    --app-id counterapi \
+    --app-port 5002 \
+    --resources-path components \
+    --config components/daprConfig.yaml \
+    -- cargo run --bin counter_api
 ```
 
 - https://docs.dapr.io/reference/environment/

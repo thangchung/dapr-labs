@@ -17,6 +17,7 @@ use sea_orm::{
     TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
@@ -31,8 +32,10 @@ struct Config {
     app_port: u16,
     #[clap(default_value = "postgres://postgres:P@ssw0rd@127.0.0.1/postgres", env)]
     database_url: String,
-    #[clap(default_value = "http://localhost:5001", env)]
-    product_url: String,
+    #[clap(default_value = "http://localhost:3500", env)]
+    dapr_url: String,
+    #[clap(default_value = "productapi", env)]
+    dapr_product_app: String,
 }
 
 #[derive(Clone)]
@@ -215,8 +218,8 @@ async fn place_order_handler(
     // barista
     let barista_items_vec = input.barista_items.unwrap();
     if barista_items_vec.iter().len() > 0 {
-        let params = params_process(&barista_items_vec);
-        let product_items = get_product_items(&app.config.product_url, params).await;
+        let params = process_params(&barista_items_vec);
+        let product_items = get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
         tracing::debug!("product_items: {:?}", product_items);
 
         for barista_item in barista_items_vec {
@@ -249,8 +252,8 @@ async fn place_order_handler(
     // kitchen
     let kitchen_items_vec = input.kitchen_items.unwrap();
     if kitchen_items_vec.iter().len() > 0 {
-        let params = params_process(&kitchen_items_vec);
-        let product_items = get_product_items(&app.config.product_url, params).await;
+        let params = process_params(&kitchen_items_vec);
+        let product_items = get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
         tracing::debug!("product_items: {:?}", product_items);
 
         for kitchen_item in kitchen_items_vec {
@@ -289,7 +292,7 @@ async fn home_handler() -> impl IntoResponse {
     StatusCode::OK
 }
 
-fn params_process(items_vec: &[PlaceOrderItem]) -> String {
+fn process_params(items_vec: &[PlaceOrderItem]) -> String {
     let params = items_vec.iter().fold("".to_string(), |acc, x| {
         if let Some(item_type) = x.item_type {
             tracing::debug!("item_type: {:?}", x);
@@ -302,18 +305,17 @@ fn params_process(items_vec: &[PlaceOrderItem]) -> String {
     params
 }
 
-async fn get_product_items(product_url: &str, params: String) -> Vec<ItemTypeDto> {
+async fn get_product_items(dapr_url: &str, dapr_product_app: &str, params: String) -> Vec<ItemTypeDto> {
     let url = format!(
-        "{}/v1/api/items-by-types/{}",
-        product_url,
-        params.trim_start_matches(',')
+        "{}/v1.0/invoke/{}/method/v1-get-items-by-types",
+        dapr_url,
+        dapr_product_app,
     );
     tracing::debug!("url: {}", url);
 
-    reqwest::get(url)
-        .await
-        .unwrap()
-        .json::<Vec<ItemTypeDto>>()
+    surf::get(url)
+        .body(json!({ "types": params.trim_start_matches(',')}))
+        .recv_json::<Vec<ItemTypeDto>>()
         .await
         .unwrap()
 }

@@ -2,14 +2,14 @@ use std::{time::Duration, env};
 
 use axum::{
     error_handling::HandleErrorLayer,
-    extract::{Path, State},
+    extract::{State},
     http::StatusCode,
     response::IntoResponse,
     routing::get,
     Json, Router,
 };
 use clap::Parser;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
@@ -118,7 +118,9 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home_handler))
         .route("/v1/api/item-types", get(item_types_handler))
+        .route("/v1-get-item-types", get(item_types_handler))
         .route("/v1/api/items-by-types/:types", get(item_by_types_handler))
+        .route("/v1-get-items-by-types", get(item_by_types_handler))
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(|error: BoxError| async move {
@@ -152,14 +154,20 @@ async fn main() {
         .unwrap();
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ItemByTypeQuery {
+    types: String
+}
+
 async fn item_by_types_handler(
-    Path(types): Path<String>,
     State(app): State<AppState>,
+    Json(query): Json<ItemByTypeQuery>,
 ) -> impl IntoResponse {
     let mut temp: Vec<ItemType> = Vec::new();
 
     for i in app.item_types {
-        let parts = types.split(',');
+        let parts = query.types.split(',');
 
         let ii = i.clone();
         for j in parts {
@@ -169,7 +177,7 @@ async fn item_by_types_handler(
         }
     }
 
-    Json(temp)
+    (StatusCode::OK, Json(temp))
 }
 
 async fn item_types_handler(State(app): State<AppState>) -> impl IntoResponse {

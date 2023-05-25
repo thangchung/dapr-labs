@@ -14,14 +14,14 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: [ "CMD", "pg_isready" ]
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
       - ./sql/seed_data.sql:/docker-entrypoint-initdb.d/seed_data.sql
     networks:
       - coffeeshop-network
-  
+
   productservice:
     image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
     build:
@@ -35,6 +35,29 @@ services:
     networks:
       - coffeeshop-network
 
+  productservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "productservice",
+        "-app-port",
+        "5001",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - productservice
+    restart: always
+    network_mode: "service:productservice"
+
   counterservice:
     image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi-rs:${IMAGE_TAG:-latest}
     build:
@@ -43,10 +66,55 @@ services:
     environment:
       - HOST=0.0.0.0
       - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
-      - PRODUCT_URL=http://productservice:5001
+      - DAPR_URL=http://localhost:3500
+      - DAPR_PRODUCT_APP=productservice
     ports:
       - "5002:5002"
     restart: always
+    networks:
+      - coffeeshop-network
+
+  counterservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "counterservice",
+        "-app-port",
+        "5002",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - counterservice
+    restart: always
+    network_mode: "service:counterservice"
+
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - coffeeshop-network
+
+  ############################
+  # Zipkin component
+  ############################
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
     networks:
       - coffeeshop-network
 

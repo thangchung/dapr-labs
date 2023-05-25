@@ -97,6 +97,44 @@ services:
     restart: always
     network_mode: "service:counterservice"
 
+  baristaservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/baristaapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/barista/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - DAPR_URL=http://localhost:3500
+    ports:
+      - "5003:5003"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  baristaservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "baristaservice",
+        "-app-port",
+        "5003",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - baristaservice
+    restart: always
+    network_mode: "service:baristaservice"
+
   ############################
   # Redis state store
   ############################

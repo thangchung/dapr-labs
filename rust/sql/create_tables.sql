@@ -55,6 +55,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE
     barista.barista_orders (
         id uuid NOT NULL DEFAULT (uuid_generate_v4()),
+        order_id uuid NOT NULL,
         item_type integer NOT NULL,
         item_name text NOT NULL,
         time_up timestamp

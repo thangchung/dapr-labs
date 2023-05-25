@@ -1,6 +1,6 @@
 use std::{env, time::Duration};
 
-use chrono::prelude::*;
+use chrono::{prelude::*, serde::ts_seconds};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -148,6 +148,25 @@ struct OrderLineModel {
     pub order_id: Option<Uuid>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BaristaOrderIn {
+    pub order_id: Uuid,
+    pub item_line_id: Uuid,
+    pub item_type: i32,
+    #[serde(with = "ts_seconds")]
+    pub time_in: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct KitchenOrderIn {
+    pub order_id: Uuid,
+    pub item_line_id: Uuid,
+    pub item_type: i32,
+    pub time_in: DateTime<Utc>,
+}
+
 async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
     let ord = Order::find().all(&app.db_conn).await;
 
@@ -219,7 +238,8 @@ async fn place_order_handler(
     let barista_items_vec = input.barista_items.unwrap();
     if barista_items_vec.iter().len() > 0 {
         let params = process_params(&barista_items_vec);
-        let product_items = get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
+        let product_items =
+            get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
         tracing::debug!("product_items: {:?}", product_items);
 
         for barista_item in barista_items_vec {
@@ -234,7 +254,7 @@ async fn place_order_handler(
                 0.0
             };
 
-            let _ = line_items::ActiveModel {
+            let order_line_result = line_items::ActiveModel {
                 item_type: Set(barista_item.item_type.unwrap_or_default()),
                 name: Set(barista_item.item_type.unwrap_or_default().to_string()),
                 price: Set(Decimal::from_f32_retain(price).unwrap_or_default()),
@@ -246,6 +266,20 @@ async fn place_order_handler(
             .save(&app.db_conn)
             .await
             .unwrap();
+
+            // publish domain event
+            publish_barista_order_in_event(
+                &app.config.dapr_url,
+                "baristapubsub",
+                "baristaordered",
+                BaristaOrderIn {
+                    order_id: result.id.clone().take().unwrap(),
+                    item_line_id: order_line_result.id.clone().take().unwrap(),
+                    item_type: barista_item.item_type.unwrap_or_default(),
+                    time_in: Utc::now(),
+                },
+            )
+            .await;
         }
     }
 
@@ -253,7 +287,8 @@ async fn place_order_handler(
     let kitchen_items_vec = input.kitchen_items.unwrap();
     if kitchen_items_vec.iter().len() > 0 {
         let params = process_params(&kitchen_items_vec);
-        let product_items = get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
+        let product_items =
+            get_product_items(&app.config.dapr_url, &app.config.dapr_product_app, params).await;
         tracing::debug!("product_items: {:?}", product_items);
 
         for kitchen_item in kitchen_items_vec {
@@ -268,7 +303,7 @@ async fn place_order_handler(
                 0.0
             };
 
-            let _ = line_items::ActiveModel {
+            let order_line_result = line_items::ActiveModel {
                 item_type: Set(kitchen_item.item_type.unwrap_or_default()),
                 name: Set(kitchen_item.item_type.unwrap_or_default().to_string()),
                 price: Set(Decimal::from_f32_retain(price).unwrap_or_default()),
@@ -280,6 +315,20 @@ async fn place_order_handler(
             .save(&app.db_conn)
             .await
             .unwrap();
+
+            // publish domain event
+            publish_kitchen_order_in_event(
+                &app.config.dapr_url,
+                "kitchenpubsub",
+                "kitchenordered",
+                KitchenOrderIn {
+                    order_id: result.id.clone().take().unwrap(),
+                    item_line_id: order_line_result.id.clone().take().unwrap(),
+                    item_type: kitchen_item.item_type.unwrap_or_default(),
+                    time_in: Utc::now(),
+                },
+            )
+            .await;
         }
     }
 
@@ -305,11 +354,14 @@ fn process_params(items_vec: &[PlaceOrderItem]) -> String {
     params
 }
 
-async fn get_product_items(dapr_url: &str, dapr_product_app: &str, params: String) -> Vec<ItemTypeDto> {
+async fn get_product_items(
+    dapr_url: &str,
+    dapr_product_app: &str,
+    params: String,
+) -> Vec<ItemTypeDto> {
     let url = format!(
         "{}/v1.0/invoke/{}/method/v1-get-items-by-types",
-        dapr_url,
-        dapr_product_app,
+        dapr_url, dapr_product_app,
     );
     tracing::debug!("url: {}", url);
 
@@ -318,4 +370,28 @@ async fn get_product_items(dapr_url: &str, dapr_product_app: &str, params: Strin
         .recv_json::<Vec<ItemTypeDto>>()
         .await
         .unwrap()
+}
+
+async fn publish_barista_order_in_event(
+    dapr_url: &str,
+    pubsub_name: &str,
+    topic: &str,
+    event: BaristaOrderIn,
+) {
+    let url = format!("{}/v1.0/publish/{}/{}", dapr_url, pubsub_name, topic);
+    tracing::debug!("url: {}", url);
+
+    surf::post(url).body(json!(event)).await.unwrap();
+}
+
+async fn publish_kitchen_order_in_event(
+    dapr_url: &str,
+    pubsub_name: &str,
+    topic: &str,
+    event: KitchenOrderIn,
+) {
+    let url = format!("{}/v1.0/publish/{}/{}", dapr_url, pubsub_name, topic);
+    tracing::debug!("url: {}", url);
+
+    surf::post(url).body(json!(event)).await.unwrap();
 }

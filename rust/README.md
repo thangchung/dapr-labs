@@ -28,6 +28,15 @@ dapr run \
     -- cargo run --bin counter_api
 ```
 
+```bash
+dapr run \
+    --app-id baristaapi \
+    --app-port 5003 \
+    --resources-path components \
+    --config components/daprConfig.yaml \
+    -- cargo run --bin barista_api
+```
+
 - https://docs.dapr.io/reference/environment/
 
 ## Database up
@@ -215,3 +224,4 @@ Output:
 
 - https://carlosmv.hashnode.dev/adding-logging-and-tracing-to-an-axum-app-rust
 - https://www.thorsten-hans.com/working-with-environment-variables-in-rust/
+- https://chrismcg.com/2019/04/30/deserializing-optional-datetimes-with-serde/

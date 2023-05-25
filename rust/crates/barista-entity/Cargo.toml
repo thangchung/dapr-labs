@@ -5,7 +5,6 @@ authors = { workspace = true }
 edition = { workspace = true }
 publish = false
 
-
 [lib]
 name = "barista_entity"
 path = "src/lib.rs"

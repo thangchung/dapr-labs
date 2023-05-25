@@ -30,7 +30,8 @@
         "serayuzgur.crates",
         "esbenp.prettier-vscode",
         "foxundermoon.shell-format",
-        "irongeek.vscode-env"
+        "irongeek.vscode-env",
+        "davidsekar.redis-xplorer"
     ],
     "otherPortsAttributes": { "onAutoForward" : "ignore" },
     "postCreateCommand": "cargo --version",

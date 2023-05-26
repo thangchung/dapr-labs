@@ -9,12 +9,12 @@ spec:
     configuration:
       selfRegister: true
       client:
-        address: # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500" 
+        address: "127.0.0.1:8500" # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500" 
       checks:
       - name: "Dapr Health Status"
         checkID: "daprHealth: - ${APP_ID} - ${CONSUL_HTTP_ADDR}"
         interval: "15s"
-        tcp: # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500"
+        tcp: "127.0.0.1:8500" # TODO: update here "10.1.0.4:8500" # Required. Example: "consul.default.svc.cluster.local:8500"
       tags:
         - "dapr"
       queryOptions:

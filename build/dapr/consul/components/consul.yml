@@ -11,4 +11,4 @@ spec:
   - name: datacenter
     value: dc1 # Required. Example: dc1
   - name: httpAddr
-    value: # TODO update here 10.1.0.4:8500 # Required. Example: "consul.default.svc.cluster.local:8500"
+    value: 127.0.0.1:8500 # TODO update here 10.1.0.4:8500 # Required. Example: "consul.default.svc.cluster.local:8500"

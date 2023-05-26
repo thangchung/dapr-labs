@@ -135,6 +135,44 @@ services:
     restart: always
     network_mode: "service:baristaservice"
 
+  kitchenservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/kitchenapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/kitchen/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - DAPR_URL=http://localhost:3500
+    ports:
+      - "5004:5004"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  kitchenservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "kitchenservice",
+        "-app-port",
+        "5004",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - kitchenservice
+    restart: always
+    network_mode: "service:kitchenservice"
+
   ############################
   # Redis state store
   ############################

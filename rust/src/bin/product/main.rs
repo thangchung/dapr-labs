@@ -15,6 +15,7 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
+// App config
 #[derive(Debug, Parser)]
 struct Config {
     #[clap(default_value = "localhost", env)]
@@ -23,6 +24,7 @@ struct Config {
     app_port: u16,
 }
 
+// Command, Query and Models
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ItemType {
@@ -35,6 +37,12 @@ struct ItemType {
 #[derive(Clone)]
 struct AppState {
     item_types: Vec<ItemType>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ItemByTypeQuery {
+    types: String
 }
 
 #[tokio::main]
@@ -152,12 +160,6 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ItemByTypeQuery {
-    types: String
 }
 
 async fn item_by_types_handler(

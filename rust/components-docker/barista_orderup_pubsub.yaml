@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: orderuppubsub
+  name: baristaorderuppubsub
   namespace: default
 spec:
   type: pubsub.redis

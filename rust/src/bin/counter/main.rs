@@ -1,5 +1,6 @@
 use std::{env, time::Duration};
 
+use chrono::serde::ts_seconds::deserialize as from_ts;
 use chrono::{prelude::*, serde::ts_seconds};
 
 use axum::{
@@ -11,6 +12,7 @@ use axum::{
     Json, Router,
 };
 use clap::Parser;
+use cloudevents::Event;
 use counter_entity::{line_items, orders, orders::Entity as Order};
 use sea_orm::{
     prelude::Decimal, ActiveModelTrait, Database, DatabaseConnection, EntityTrait, ModelTrait, Set,
@@ -24,13 +26,14 @@ use tracing::Level;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
 
+// App config
 #[derive(Debug, Parser, Clone)]
 struct Config {
     #[clap(default_value = "localhost", env)]
     host: String,
     #[clap(default_value = "5002", env)]
     app_port: u16,
-    #[clap(default_value = "postgres://postgres:P@ssw0rd@127.0.0.1/postgres", env)]
+    #[clap(default_value = "postgres://localhost/db", env)]
     database_url: String,
     #[clap(default_value = "http://localhost:3500", env)]
     dapr_url: String,
@@ -44,70 +47,19 @@ struct AppState {
     db_conn: DatabaseConnection,
 }
 
-#[tokio::main]
-async fn main() {
-    env::set_var("RUST_LOG", "debug");
-    dotenv::dotenv().ok();
-
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "counter_api=debug,tower_http=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
-
-    let config = Config::parse();
-
-    let db_conn: DatabaseConnection = Database::connect(&config.database_url)
-        .await
-        .expect("Database connection failed");
-
-    let state = AppState {
-        config: config.clone(),
-        db_conn,
-    };
-
-    let app = Router::new()
-        .route("/", get(home_handler))
-        .route("/v1/api/fulfillment-orders", get(get_order_handler))
-        .route("/v1/api/orders", post(place_order_handler))
-        .layer(
-            ServiceBuilder::new()
-                .layer(HandleErrorLayer::new(|error: BoxError| async move {
-                    if error.is::<tower::timeout::error::Elapsed>() {
-                        Ok(StatusCode::REQUEST_TIMEOUT)
-                    } else {
-                        Err((
-                            StatusCode::INTERNAL_SERVER_ERROR,
-                            format!("Unhandled internal error: {}", error),
-                        ))
-                    }
-                }))
-                .timeout(Duration::from_secs(10))
-                .layer(
-                    TraceLayer::new_for_http()
-                        .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
-                        .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
-                )
-                .into_inner(),
-        )
-        .with_state(state);
-
-    let addr: String = format!("{}:{}", config.host.as_str(), config.app_port);
-
-    tracing::debug!("listening on {}", addr);
-
-    axum::Server::bind(&addr.parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-
+// Command, Query and Models
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PlaceOrderItem {
     item_type: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct SubscribeModel {
+    pubsubname: String,
+    topic: String,
+    route: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -164,7 +116,112 @@ struct KitchenOrderIn {
     pub order_id: Uuid,
     pub item_line_id: Uuid,
     pub item_type: i32,
+    #[serde(with = "ts_seconds")]
     pub time_in: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BaristaOrderUp {
+    pub order_id: Uuid,
+    pub item_line_id: Uuid,
+    pub name: String,
+    pub item_type: i32,
+    #[serde(deserialize_with = "from_ts")]
+    pub time_in: DateTime<Utc>,
+    pub made_by: String,
+    #[serde(deserialize_with = "from_ts")]
+    pub time_up: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct KitchenOrderUp {
+    pub order_id: Uuid,
+    pub item_line_id: Uuid,
+    pub name: String,
+    pub item_type: i32,
+    #[serde(deserialize_with = "from_ts")]
+    pub time_in: DateTime<Utc>,
+    pub made_by: String,
+    #[serde(deserialize_with = "from_ts")]
+    pub time_up: DateTime<Utc>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ItemTypeDto {
+    price: f32,
+    item_type: i32,
+}
+
+#[tokio::main]
+async fn main() {
+    env::set_var("RUST_LOG", "debug");
+    dotenv::dotenv().ok();
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "counter_api=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    let config = Config::parse();
+
+    let db_conn: DatabaseConnection = Database::connect(&config.database_url)
+        .await
+        .expect("Database connection failed");
+
+    let state = AppState {
+        config: config.clone(),
+        db_conn,
+    };
+
+    let app = Router::new()
+        .route("/", get(home_handler))
+        .route("/dapr/subscribe", get(get_subscribe_handler))
+        .route(
+            "/update-barista-order-line-item",
+            post(update_barista_order_line_item_handler),
+        )
+        .route(
+            "/update-kitchen-order-line-item",
+            post(update_kitchen_order_line_item_handler),
+        )
+        .route("/v1/api/fulfillment-orders", get(get_order_handler))
+        .route("/v1/api/orders", post(place_order_handler))
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|error: BoxError| async move {
+                    if error.is::<tower::timeout::error::Elapsed>() {
+                        Ok(StatusCode::REQUEST_TIMEOUT)
+                    } else {
+                        Err((
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            format!("Unhandled internal error: {}", error),
+                        ))
+                    }
+                }))
+                .timeout(Duration::from_secs(10))
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+                        .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+                )
+                .into_inner(),
+        )
+        .with_state(state);
+
+    let addr: String = format!("{}:{}", config.host.as_str(), config.app_port);
+
+    tracing::debug!("listening on {}", addr);
+
+    axum::Server::bind(&addr.parse().unwrap())
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
 
 async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
@@ -209,13 +266,6 @@ async fn get_order_handler(State(app): State<AppState>) -> impl IntoResponse {
             (StatusCode::OK, Json(vec![]))
         }
     }
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ItemTypeDto {
-    price: f32,
-    item_type: i32,
 }
 
 async fn place_order_handler(
@@ -339,6 +389,158 @@ async fn place_order_handler(
 
 async fn home_handler() -> impl IntoResponse {
     StatusCode::OK
+}
+
+async fn get_subscribe_handler() -> impl IntoResponse {
+    let subscribe_model = vec![
+        SubscribeModel {
+            pubsubname: "baristaorderuppubsub".to_string(),
+            topic: "baristaorderup".to_string(),
+            route: "update-barista-order-line-item".to_string(),
+        },
+        SubscribeModel {
+            pubsubname: "kitchenorderuppubsub".to_string(),
+            topic: "kitchenorderup".to_string(),
+            route: "update-kitchen-order-line-item".to_string(),
+        },
+    ];
+
+    (StatusCode::OK, Json(subscribe_model))
+}
+
+async fn update_barista_order_line_item_handler(
+    State(app): State<AppState>,
+    Json(event): Json<Event>,
+) -> impl IntoResponse {
+    tracing::debug!("barista_order_up_event: {:?}", event.data());
+
+    let event = match event.data() {
+        Some(cloudevents::Data::Json(value)) => {
+            let temp = <BaristaOrderUp as Deserialize>::deserialize(value);
+            tracing::debug!("BaristaOrderUp: {:?}", temp);
+            temp.unwrap()
+        }
+        _ => unreachable!(),
+    };
+
+    match Order::find_by_id(event.order_id).one(&app.db_conn).await {
+        Ok(result) => {
+            tracing::debug!("Order_updating: {:?}", result);
+            if let Some(order) = result {
+                let line_item_result = order
+                    .find_related(line_items::Entity)
+                    .one(&app.db_conn)
+                    .await
+                    .unwrap_or_default();
+
+                if let Some(line_item) = line_item_result {
+                    if line_item.is_barista_order {
+                        let _ = line_items::ActiveModel {
+                            id: Set(line_item.id),
+                            item_status: Set(2), // 0=PLACED; 1=IN_PROGRESS; 2=FULFILLED
+                            ..Default::default()
+                        }
+                        .save(&app.db_conn)
+                        .await
+                        .unwrap();
+                    }
+                }
+
+                let line_item_all_result = order
+                    .find_related(line_items::Entity)
+                    .all(&app.db_conn)
+                    .await
+                    .unwrap_or_default();
+
+                let mut all_done = true; // assume all done
+                for line_item in line_item_all_result {
+                    if line_item.item_status < 2 {
+                        all_done = false;
+                    }
+                }
+
+                if all_done {
+                    let _ = orders::ActiveModel {
+                        id: Set(order.id),
+                        order_status: Set(2), // 0=PLACED; 1=IN_PROGRESS; 2=FULFILLED
+                        ..Default::default()
+                    }
+                    .save(&app.db_conn)
+                    .await
+                    .unwrap();
+                }
+            };
+        }
+        Err(_) => unreachable!(),
+    };
+}
+
+async fn update_kitchen_order_line_item_handler(
+    State(app): State<AppState>,
+    Json(event): Json<Event>,
+) -> impl IntoResponse {
+    tracing::debug!("kitchen_order_up_event: {:?}", event.data());
+
+    let event = match event.data() {
+        Some(cloudevents::Data::Json(value)) => {
+            let temp = <KitchenOrderUp as Deserialize>::deserialize(value);
+            tracing::debug!("KitchenOrderUp: {:?}", temp);
+            temp.unwrap()
+        }
+        _ => unreachable!(),
+    };
+
+    match Order::find_by_id(event.order_id).one(&app.db_conn).await {
+        Ok(result) => {
+            tracing::debug!("Order_updating: {:?}", result);
+            if let Some(order) = result {
+                let line_item_result = order
+                    .find_related(line_items::Entity)
+                    .one(&app.db_conn)
+                    .await
+                    .unwrap_or_default();
+
+                if let Some(line_item) = line_item_result {
+                    // kitchen item?
+                    if !line_item.is_barista_order {
+                        let _ = line_items::ActiveModel {
+                            id: Set(line_item.id),
+                            item_status: Set(2), // 0=PLACED; 1=IN_PROGRESS; 2=FULFILLED
+                            ..Default::default()
+                        }
+                        .save(&app.db_conn)
+                        .await
+                        .unwrap();
+                    }
+                }
+
+                let line_item_all_result = order
+                    .find_related(line_items::Entity)
+                    .all(&app.db_conn)
+                    .await
+                    .unwrap_or_default();
+
+                let mut all_done = true; // assume all done
+                for line_item in line_item_all_result {
+                    if line_item.item_status < 2 {
+                        all_done = false;
+                    }
+                }
+
+                if all_done {
+                    let _ = orders::ActiveModel {
+                        id: Set(order.id),
+                        order_status: Set(2), // 0=PLACED; 1=IN_PROGRESS; 2=FULFILLED
+                        ..Default::default()
+                    }
+                    .save(&app.db_conn)
+                    .await
+                    .unwrap();
+                }
+            };
+        }
+        Err(_) => unreachable!(),
+    };
 }
 
 fn process_params(items_vec: &[PlaceOrderItem]) -> String {

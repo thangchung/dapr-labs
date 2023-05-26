@@ -718,6 +718,7 @@ dependencies = [
  "config",
  "counter-entity",
  "dotenv",
+ "kitchen-entity",
  "sea-orm",
  "serde",
  "serde_json",

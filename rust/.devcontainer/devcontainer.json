@@ -1,0 +1,45 @@
+{
+    "name": "coffeeshop-rs",
+    "build": {
+        "dockerfile": "Dockerfile-dev",
+        "args": {
+            "VARIANT": "ubuntu-22.04"
+        }
+    },
+    "remoteUser": "root",
+    "containerUser": "root",
+    "settings": {
+        "lldb.executable": "/usr/bin/lldb",
+        // VS Code don't watch files under ./target
+        "files.watcherExclude": {
+            "**/target/**": true
+        },
+        "rust-analyzer.checkOnSave.command": "clippy"
+    },
+    "extensions": [
+        "mutantdino.resourcemonitor",
+        "humao.rest-client",
+        "bungcip.better-toml",
+        "ms-vscode.makefile-tools",
+        "davidanson.vscode-markdownlint",
+        "cweijan.vscode-database-client2",
+        "bierner.markdown-mermaid",
+        "vadimcn.vscode-lldb",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "esbenp.prettier-vscode",
+        "foxundermoon.shell-format",
+        "irongeek.vscode-env",
+        "davidsekar.redis-xplorer"
+    ],
+    "otherPortsAttributes": { "onAutoForward" : "ignore" },
+    "postCreateCommand": "cargo --version",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:1": {
+            "moby": false
+        },
+        "ghcr.io/dapr/cli/dapr-cli:0": {},
+        "ghcr.io/christophermacgown/devcontainer-features/direnv:1": {}
+    }
+}

@@ -1,0 +1,198 @@
+version: "3.7"
+
+services:
+  postgresql:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=P@ssw0rd
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/seed_data.sql:/docker-entrypoint-initdb.d/seed_data.sql
+    networks:
+      - coffeeshop-network
+
+  productservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/product/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+    ports:
+      - "5001:5001"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  productservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "productservice",
+        "-app-port",
+        "5001",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - productservice
+    restart: always
+    network_mode: "service:productservice"
+
+  counterservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/counter/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - DAPR_URL=http://localhost:3500
+      - DAPR_PRODUCT_APP=productservice
+    ports:
+      - "5002:5002"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  counterservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "counterservice",
+        "-app-port",
+        "5002",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - counterservice
+    restart: always
+    network_mode: "service:counterservice"
+
+  baristaservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/baristaapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/barista/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - DAPR_URL=http://localhost:3500
+    ports:
+      - "5003:5003"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  baristaservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "baristaservice",
+        "-app-port",
+        "5003",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - baristaservice
+    restart: always
+    network_mode: "service:baristaservice"
+
+  kitchenservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/kitchenapi-rs:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/bin/kitchen/Dockerfile
+    environment:
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgres://postgres:P@ssw0rd@postgresql/postgres
+      - DAPR_URL=http://localhost:3500
+    ports:
+      - "5004:5004"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  kitchenservice-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "-app-id",
+        "kitchenservice",
+        "-app-port",
+        "5004",
+        "-placement-host-address",
+        "placement:50006",
+        "-config",
+        "/components/daprConfig.yaml",
+        "-resources-path",
+        "/components"
+      ]
+    volumes:
+      - "./components-docker/:/components"
+    depends_on:
+      - kitchenservice
+    restart: always
+    network_mode: "service:kitchenservice"
+
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - coffeeshop-network
+
+  ############################
+  # Zipkin component
+  ############################
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - coffeeshop-network
+
+networks:
+  coffeeshop-network:

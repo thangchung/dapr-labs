@@ -31,10 +31,10 @@ services:
      "-app-id", "productservice",
      "-app-port", "5001",
      "-placement-host-address", "placement:50006",
-     "-config", "/build/dapr/components/daprConfig.yaml",
-     "-resources-path", "/build/dapr/components"]
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
     volumes:
-      - "./build/dapr/components/:/build/dapr/components"
+      - "./build/dapr/local/components/:/build/dapr/local/components"
     depends_on:
       - productservice
     restart: always
@@ -64,10 +64,10 @@ services:
      "-app-id", "counterservice",
      "-app-port", "5002",
      "-placement-host-address", "placement:50006",
-     "-config", "/build/dapr/components/daprConfig.yaml",
-     "-resources-path", "/build/dapr/components"]
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
     volumes:
-      - "./build/dapr/components/:/build/dapr/components"
+      - "./build/dapr/local/components/:/build/dapr/local/components"
     depends_on:
       - counterservice
     restart: always
@@ -95,10 +95,10 @@ services:
      "-app-id", "baristaservice",
      "-app-port", "5003",
      "-placement-host-address", "placement:50006",
-     "-config", "/build/dapr/components/daprConfig.yaml",
-     "-resources-path", "/build/dapr/components"]
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
     volumes:
-      - "./build/dapr/components/:/build/dapr/components"
+      - "./build/dapr/local/components/:/build/dapr/local/components"
     depends_on:
       - baristaservice
     restart: always
@@ -126,10 +126,10 @@ services:
      "-app-id", "kitchenservice",
      "-app-port", "5004",
      "-placement-host-address", "placement:50006",
-     "-config", "/build/dapr/components/daprConfig.yaml",
-     "-resources-path", "/build/dapr/components"]
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
     volumes:
-      - "./build/dapr/components/:/build/dapr/components"
+      - "./build/dapr/local/components/:/build/dapr/local/components"
     depends_on:
       - kitchenservice
     restart: always
@@ -159,10 +159,10 @@ services:
      "-app-id", "reverseproxy",
      "-app-port", "8080",
      "-placement-host-address", "placement:50006",
-     "-config", "/iac/dapr/local/config.yaml",
-     "-resources-path", "/iac/dapr/local"]
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
     volumes:
-      - "./iac/dapr/local/:/iac/dapr/local"
+      - "./build/dapr/local/components/:/build/dapr/local/components"
     depends_on:
       - reverseproxy
     restart: always

@@ -1,0 +1,17 @@
+@host = http://localhost:3000
+
+### Product API
+GET {{host}}/ HTTP/1.1
+content-type: application/json
+
+### Product API
+GET {{host}}/v1-get-item-types HTTP/1.1
+content-type: application/json
+
+### Product API
+GET {{host}}/v1-get-items-by-types HTTP/1.1
+content-type: application/json
+
+{
+    "types": "1,2,3"
+}

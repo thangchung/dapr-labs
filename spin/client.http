@@ -1,4 +1,17 @@
-@host = http://localhost:3000
+@host = http://localhost:5002
+@counter_host = http://localhost:5002
+
+### Dapr Product API
+GET {{host}}/v1.0/invoke/productapi/method/v1-get-item-types HTTP/1.1
+content-type: application/json
+
+### Dapr Product API
+GET {{host}}/v1.0/invoke/productapi/method/v1-get-items-by-types HTTP/1.1
+content-type: application/json
+
+{
+  "types": "1,2,3"
+}
 
 ### Product API
 GET {{host}}/ HTTP/1.1
@@ -15,3 +28,7 @@ content-type: application/json
 {
     "types": "1,2,3"
 }
+
+### Counter API
+GET {{counter_host}} HTTP/1.1
+content-type: application/json

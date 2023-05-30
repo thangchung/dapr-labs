@@ -1,0 +1,16 @@
+spin_manifest_version = "1"
+authors = ["thangchung <thangchung@ymail.com>"]
+description = ""
+name = "counter-api"
+trigger = { type = "http", base = "/" }
+version = "0.1.0"
+
+[[component]]
+id = "counter-api"
+source = "target/wasm32-wasi/release/counter_api.wasm"
+allowed_http_hosts = ["http://localhost:45983"]
+[component.trigger]
+route = "/..."
+[component.build]
+command = "cargo build --target wasm32-wasi --release"
+watch = ["src/**/*.rs", "Cargo.toml"]

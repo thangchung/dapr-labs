@@ -16,6 +16,22 @@ struct ItemType {
     image: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct GetItemByTypeModel{
+    types: String,
+}
+
+impl TryFrom<&Option<Bytes>> for GetItemByTypeModel {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &Option<Bytes>) -> std::result::Result<Self, Self::Error> {
+        match value {
+            Some(b) => Ok(serde_json::from_slice::<GetItemByTypeModel>(b)?),
+            None => Err(anyhow::anyhow!("No body")),
+        }
+    }
+}
+
 #[http_component]
 fn handle_product_api(req: Request) -> Result<Response> {
     println!("{:?}", req.headers());
@@ -39,22 +55,6 @@ fn get_item_types_handler(_req: Request, _params: Params) -> Result<Response> {
         .header("Content-Type", "application/json")
         .status(200)
         .body(Some(result))?)
-}
-
-#[derive(Debug, Deserialize)]
-struct GetItemByTypeModel{
-    types: String,
-}
-
-impl TryFrom<&Option<Bytes>> for GetItemByTypeModel {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &Option<Bytes>) -> std::result::Result<Self, Self::Error> {
-        match value {
-            Some(b) => Ok(serde_json::from_slice::<GetItemByTypeModel>(b)?),
-            None => Err(anyhow::anyhow!("No body")),
-        }
-    }
 }
 
 fn get_item_by_types_handler(req: Request, _params: Params) -> Result<Response> {

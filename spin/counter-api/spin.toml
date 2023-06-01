@@ -8,8 +8,8 @@ version = "0.1.0"
 [[component]]
 id = "counter-api"
 source = "target/wasm32-wasi/release/counter_api.wasm"
-environment = { DB_URL = "host=localhost user=postgres password=P@ssw0rd dbname=postgres sslmode=disable" }
-allowed_http_hosts = ["http://localhost:45983"]
+environment = { DB_URL = "host=localhost user=postgres password=P@ssw0rd dbname=postgres sslmode=disable", DAPR_URL = "http://localhost:42683", PRODUCT_APP = "productapi" }
+allowed_http_hosts = ["http://localhost:42683"]
 [component.trigger]
 route = "/..."
 [component.build]

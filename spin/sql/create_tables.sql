@@ -10,7 +10,7 @@ CREATE TABLE
     "order".orders (
         id uuid NOT NULL DEFAULT (uuid_generate_v4()),
         order_source integer NOT NULL,
-        loyalty_member_id uuid NOT NULL,
+        loyalty_member_id text NOT NULL,
         order_status integer NOT NULL,
         updated timestamp
         with
@@ -55,7 +55,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE
     barista.barista_orders (
         id uuid NOT NULL DEFAULT (uuid_generate_v4()),
-        order_id uuid NOT NULL,
+        order_id text NOT NULL,
         item_type integer NOT NULL,
         item_name text NOT NULL,
         time_up timestamp
@@ -84,7 +84,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE
     kitchen.kitchen_orders (
         id uuid NOT NULL DEFAULT (uuid_generate_v4()),
-        order_id uuid NOT NULL,
+        order_id text NOT NULL,
         item_type integer NOT NULL,
         item_name text NOT NULL,
         time_up timestamp

@@ -1,0 +1,193 @@
+version: "3.7"
+
+services:
+  postgresql:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=P@ssw0rd
+    ports:
+      - 5432:5432
+    networks:
+      - coffeeshop-network
+
+  productservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/productapi:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: src/ProductService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5001:5001"
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  productservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "productservice",
+     "-app-port", "5001",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
+    volumes:
+      - "./build/dapr/local/components/:/build/dapr/local/components"
+    depends_on:
+      - productservice
+    restart: always
+    network_mode: "service:productservice"
+  
+  counterservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/counterapi:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: ./src/CounterService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__counterdb=Server=postgresql;Port=5432;Database=postgres;User Id=postgres;Password=P@ssw0rd
+      - ProductCatalogAppDaprName=productservice
+    ports:
+      - "5002:5002"
+    depends_on:
+      - postgresql
+      - productservice
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  counterservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "counterservice",
+     "-app-port", "5002",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
+    volumes:
+      - "./build/dapr/local/components/:/build/dapr/local/components"
+    depends_on:
+      - counterservice
+    restart: always
+    network_mode: "service:counterservice"
+
+  baristaservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/baristaapi:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: ./src/BaristaService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__baristadb=Server=postgresql;Port=5432;Database=postgres;User Id=postgres;Password=P@ssw0rd
+    ports:
+      - "5003:5003"
+    depends_on:
+      - postgresql
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  baristaservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "baristaservice",
+     "-app-port", "5003",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
+    volumes:
+      - "./build/dapr/local/components/:/build/dapr/local/components"
+    depends_on:
+      - baristaservice
+    restart: always
+    network_mode: "service:baristaservice"
+
+  kitchenservice:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/kitchenapi:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: ./src/KitchenService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__kitchendb=Server=postgresql;Port=5432;Database=postgres;User Id=postgres;Password=P@ssw0rd
+    ports:
+      - "5004:5004"
+    depends_on:
+      - postgresql
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  kitchenservice-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "kitchenservice",
+     "-app-port", "5004",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
+    volumes:
+      - "./build/dapr/local/components/:/build/dapr/local/components"
+    depends_on:
+      - kitchenservice
+    restart: always
+    network_mode: "service:kitchenservice"
+    
+  reverseproxy:
+    image: ${DOCKER_REGISTRY:-ghcr.io/thangchung/try-nomad-dapr}/reverse-proxy:${IMAGE_TAG:-latest}
+    build:
+      context: ./dotnet/
+      dockerfile: ./src/ReverseProxy/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ReverseProxy__Clusters__productApiCluster__Destinations__destination1__Address=http://productservice:5001
+      - ReverseProxy__Clusters__counterApiCluster__Destinations__destination1__Address=http://counterservice:5002
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresql
+      - counterservice
+    restart: always
+    networks:
+      - coffeeshop-network
+
+  reverseproxy-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "reverseproxy",
+     "-app-port", "8080",
+     "-placement-host-address", "placement:50006",
+     "-config", "/build/dapr/local/components/daprConfig.yaml",
+     "-resources-path", "/build/dapr/local/components"]
+    volumes:
+      - "./build/dapr/local/components/:/build/dapr/local/components"
+    depends_on:
+      - reverseproxy
+    restart: always
+    network_mode: "service:reverseproxy"
+
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - coffeeshop-network
+
+  ############################
+  # Zipkin component
+  ############################
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - coffeeshop-network
+
+networks:
+  coffeeshop-network:

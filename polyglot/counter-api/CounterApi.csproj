@@ -8,6 +8,14 @@
 
     <ItemGroup>
       <PackageReference Include="Dapr.AspNetCore" Version="1.11.0-rc01" />
+      <PackageReference Include="Dapr.Workflow" Version="1.11.0-rc01" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\libs\CoffeeShop.Contracts\CoffeeShop.Contracts.csproj" />
+      <ProjectReference Include="..\libs\N8T.Core\N8T.Core.csproj" />
+      <ProjectReference Include="..\libs\N8T.Infrastructure.EfCore\N8T.Infrastructure.EfCore.csproj" />
+      <ProjectReference Include="..\libs\N8T.Infrastructure\N8T.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

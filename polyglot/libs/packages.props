@@ -1,0 +1,19 @@
+<Project>
+
+  <PropertyGroup>
+    <Product>try-nomad-dapr</Product>
+    <Authors>Thang Chung</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/thangchung/try-nomad-dapr.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/thangchung/try-nomad-dapr</PackageProjectUrl>
+    <PackageLicense>https://github.com/thangchung/try-nomad-dapr/blob/master/LICENSE</PackageLicense>
+    <Copyright>Copyright (c) Thang Chung - 2023</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MinVerDefaultPreReleasePhase>preview</MinVerDefaultPreReleasePhase>
+    <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+
+</Project>

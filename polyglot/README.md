@@ -2,6 +2,39 @@
 
 ![coffeeshop-polyglot-highlevelarchirecture](assets/coffeeshop-polyglot-highlevelarchirecture.png)
 
+## Get starting
+
+See how to init [Dapr](#dapr) as below
+
+```sh
+docker compose up
+```
+
+```sh
+cd product-api
+dapr run \
+    --app-id productapi \
+    --app-port 5001 \
+    --resources-path ../components \
+    --config ../components/daprConfig.yaml \
+    -- spin up --listen 0.0.0.0:5001
+```
+
+```sh
+dapr list # see if it runs or not?
+```
+
+```sh
+dapr run \
+    --app-id counterapi \
+    --app-port 5002 \
+    --resources-path components \
+    --config components/daprConfig.yaml \
+    -- dotnet run --project counter-api/CounterApi.csproj
+```
+
+Then, playing around with it at [client.local.http](client.local.http)!
+
 ## Install dotnet on Ubuntu 22.04
 
 ```sh

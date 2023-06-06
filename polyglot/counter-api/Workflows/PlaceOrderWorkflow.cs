@@ -1,25 +1,24 @@
+using CoffeeShop.Contracts;
 using CounterApi.Activities;
-using CounterApi.Domain;
 using Dapr.Workflow;
 using CounterApi.Domain.Commands;
 
 namespace CounterApi.Workflows;
 
 public record PlaceOrderResult(bool Success);
-public record Result; 
+public record PlaceOrderWorkflowResult(bool Success);
 public record Notification(string Message);
 
-public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, Result>
+public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflowResult>
 {
-    public override async Task<Result> RunAsync(WorkflowContext context, PlaceOrderCommand input)
+    public override async Task<PlaceOrderWorkflowResult> RunAsync(WorkflowContext context, PlaceOrderCommand input)
     {
         var orderId = context.InstanceId;
-        var lineItemStatuses = new Dictionary<Guid, ItemStatus>();
         
         await context.CallActivityAsync(
             nameof(NotifyActivity),
             new Notification($"Received order {orderId}"));
-        
+
         var result = await context.CallActivityAsync<PlaceOrderResult>(
             nameof(AddOrderActivity),
             input);
@@ -28,20 +27,29 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, Result>
         {
             try
             {
-                // https://github.com/Azure/azure-functions-durable-extension/issues/275
-                while (lineItemStatuses.Any(x => x.Value != ItemStatus.FULFILLED))
-                {
-                    //todo: works on it
-                    // 1. update order
-                    // 2. then update dictionary
-                }
+                // Pause and wait for barista & kitchen event
+                context.SetCustomStatus("Waiting for barista & kitchen events");
+                var baristaOrderUpdatedEvent = context.WaitForExternalEventAsync<BaristaOrderUpdated>(
+                    eventName: "BaristaOrderUpdated",
+                    timeout: TimeSpan.FromSeconds(15));
 
-                // Pause and wait for barista
-                /*context.SetCustomStatus("Waiting for barista");
-                var orderCompletedResult = await context.WaitForExternalEventAsync<OrderCompleted>(
-                    eventName: "OrderCompleted",
-                    timeout: TimeSpan.FromSeconds(30));*/
-                
+                var kitchenOrderUpdatedEvent = context.WaitForExternalEventAsync<KitchenOrderUpdated>(
+                    eventName: "KitchenOrderUpdated",
+                    timeout: TimeSpan.FromSeconds(15));
+
+                await Task.WhenAll(baristaOrderUpdatedEvent, kitchenOrderUpdatedEvent);
+
+                var baristaOrderUpdatedResult = await baristaOrderUpdatedEvent;
+                var kitchenOrderUpdatedResult = await kitchenOrderUpdatedEvent;
+
+                await context.CallActivityAsync(
+                    nameof(BaristaUpdateOrderActivity),
+                    baristaOrderUpdatedResult);
+
+                await context.CallActivityAsync(
+                    nameof(KitchenUpdateOrderActivity),
+                    kitchenOrderUpdatedResult);
+
                 await context.CallActivityAsync(
                     nameof(NotifyActivity),
                     new Notification($"Completed: order {orderId}"));
@@ -49,19 +57,48 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, Result>
             catch (TaskCanceledException)
             {
                 // todo refund money
+                // ...
+
                 await context.CallActivityAsync(
                     nameof(NotifyActivity),
                     new Notification($"Failed: order {orderId} (refund money)"));
+
+                context.SetCustomStatus(
+                    "Stopped order process due to time-out when called to barista & kitchen actions.");
+
+                return new PlaceOrderWorkflowResult(Success: false);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException is DurableTask.Core.Exceptions.TaskFailedException)
+                {
+                    // todo refund money
+                    // ...
+
+                    await context.CallActivityAsync(
+                        nameof(NotifyActivity),
+                        new Notification($"Failed: order {orderId} (refund money)"));
+
+                    context.SetCustomStatus("Stopped order process due to error in update actions.");
+
+                    return new PlaceOrderWorkflowResult(Success: false);
+                }
             }
         }
         else
         {
             // todo refund money
+            // ...
+            
             await context.CallActivityAsync(
                 nameof(NotifyActivity),
                 new Notification($"Failed: order {orderId} (refund money)"));
+            
+            context.SetCustomStatus("Stopped order process due to place order issue.");
+            
+            return new PlaceOrderWorkflowResult(Success: false);
         }
 
-        return new Result();
+        return new PlaceOrderWorkflowResult(Success: true);
     }
 }

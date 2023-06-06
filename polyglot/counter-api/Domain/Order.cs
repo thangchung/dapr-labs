@@ -35,8 +35,8 @@ public class Order : EntityRootBase
             var items = await itemGateway.GetItemsByType(itemTypes.ToArray());
             foreach (var baristaItem in placeOrderCommand.BaristaItems)
             {
-                var item = items.FirstOrDefault(x => x.Type == baristaItem.ItemType);
-                var lineItem = new LineItem(baristaItem.ItemType, item?.Type.ToString()!, (decimal)item?.Price!, ItemStatus.IN_PROGRESS, true);
+                var item = items.FirstOrDefault(x => x.ItemType == baristaItem.ItemType);
+                var lineItem = new LineItem(baristaItem.ItemType, item?.ItemType.ToString()!, (decimal)item?.Price!, ItemStatus.IN_PROGRESS, true);
 
                 order.AddDomainEvent(new OrderUpdate(order.Id, lineItem.Id, lineItem.ItemType, OrderStatus.IN_PROGRESS));
                 order.AddDomainEvent(new BaristaOrderIn(order.Id, lineItem.Id, lineItem.ItemType));
@@ -51,8 +51,8 @@ public class Order : EntityRootBase
             var items = await itemGateway.GetItemsByType(itemTypes.ToArray());
             foreach (var kitchenItem in placeOrderCommand.KitchenItems)
             {
-                var item = items.FirstOrDefault(x => x.Type == kitchenItem.ItemType);
-                var lineItem = new LineItem(kitchenItem.ItemType, item?.Type.ToString()!, (decimal)item?.Price!, ItemStatus.IN_PROGRESS, false);
+                var item = items.FirstOrDefault(x => x.ItemType == kitchenItem.ItemType);
+                var lineItem = new LineItem(kitchenItem.ItemType, item?.ItemType.ToString()!, (decimal)item?.Price!, ItemStatus.IN_PROGRESS, false);
 
                 order.AddDomainEvent(new OrderUpdate(order.Id, lineItem.Id, lineItem.ItemType, OrderStatus.IN_PROGRESS));
                 order.AddDomainEvent(new KitchenOrderIn(order.Id, lineItem.Id, lineItem.ItemType));
@@ -72,7 +72,7 @@ public class Order : EntityRootBase
         if (item is not null)
         {
             item.ItemStatus = ItemStatus.FULFILLED;
-            AddDomainEvent(new OrderUpdate(Id, item.Id, item.ItemType, OrderStatus.FULFILLED, orderUp.MadeBy));
+            // AddDomainEvent(new OrderUpdate(Id, item.Id, item.ItemType, OrderStatus.FULFILLED, orderUp.MadeBy));
         }
 
         // if there are both barista and kitchen items is fulfilled then checking status and change order to Fulfilled

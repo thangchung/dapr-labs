@@ -1,11 +1,11 @@
+using CoffeeShop.Contracts;
 using CounterApi.Domain;
 using CounterApi.Domain.Commands;
 using FluentValidation;
 using MediatR;
-using N8T.Core.Domain;
-using N8T.Core.Repository;
 using CounterApi.Workflows;
 using Dapr.Client;
+using Newtonsoft.Json;
 
 namespace CounterApi.Features;
 
@@ -24,36 +24,32 @@ internal class OrderInValidator : AbstractValidator<PlaceOrderCommand>
 
 internal class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, IResult>
 {
-    private readonly IRepository<Order> _orderRepository;
-    private readonly IItemGateway _itemGateway;
-    private readonly IPublisher _publisher;
     private readonly DaprClient _daprClient;
+    private readonly IItemGateway _itemGateway;
+    private readonly ILogger<PlaceOrderHandler> _logger;
 
-    public PlaceOrderHandler(IRepository<Order> orderRepository, IItemGateway itemGateway, IPublisher publisher, DaprClient daprClient)
+    public PlaceOrderHandler(DaprClient daprClient, IItemGateway itemGateway, ILogger<PlaceOrderHandler> logger)
     {
-        _orderRepository = orderRepository;
-        _itemGateway = itemGateway;
-        _publisher = publisher;
         _daprClient = daprClient;
+        _itemGateway = itemGateway;
+        _logger = logger;
     }
 
     public async Task<IResult> Handle(PlaceOrderCommand placeOrderCommand, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(placeOrderCommand);
 
+        var itemTypes = new List<ItemType> { ItemType.ESPRESSO };
+        var items = await _itemGateway.GetItemsByType(itemTypes.ToArray());
+        _logger.LogInformation("Query xxx: {JsonObject}", JsonConvert.SerializeObject(items));
+        
         var orderId = Guid.NewGuid().ToString();
-        // var order = await Order.From(placeOrderCommand, _itemGateway);
-
         await _daprClient.StartWorkflowAsync(
-            "place-order-workflow",
+            "dapr",
             nameof(PlaceOrderWorkflow),
             orderId,
             placeOrderCommand,
             cancellationToken: cancellationToken);
-        
-        // await _orderRepository.AddAsync(order, cancellationToken: cancellationToken);
-
-        // await order.RelayAndPublishEvents(_publisher, cancellationToken);
 
         return Results.Ok();
     }

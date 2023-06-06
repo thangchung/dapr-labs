@@ -16,7 +16,7 @@ public class NotifyActivity : WorkflowActivity<Notification, object?>
     {
         _logger.LogInformation(input.Message);
         
-        //todo: inject DaprClient to publish event
+        //todo: inject DaprClient to publish event for Notification API
         
         return Task.FromResult<object?>(null);
     }

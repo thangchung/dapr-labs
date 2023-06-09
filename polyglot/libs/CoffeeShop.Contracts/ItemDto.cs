@@ -1,12 +1,4 @@
-﻿using System.Reflection;
-
-namespace CoffeeShop.Contracts;
-
-public class OrderItemDto
-{
-    public Guid ItemLineId { get; set; }
-    public ItemType ItemType { get; set; }
-}
+﻿namespace CoffeeShop.Contracts;
 
 public class ItemDto
 {

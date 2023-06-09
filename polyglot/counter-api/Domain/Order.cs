@@ -28,7 +28,8 @@ public class Order : EntityRootBase
     public static async Task<Order> From(PlaceOrderCommand placeOrderCommand, IItemGateway itemGateway)
     {
         var order = new Order(placeOrderCommand.OrderSource, placeOrderCommand.LoyaltyMemberId, OrderStatus.IN_PROGRESS, placeOrderCommand.Location);
-
+        order.Id = placeOrderCommand.OrderId;
+        
         if (placeOrderCommand.BaristaItems.Any())
         {
             var itemTypes = placeOrderCommand.BaristaItems.Select(x => x.ItemType);

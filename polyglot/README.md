@@ -1,4 +1,4 @@
-# CoffeeShop Polyglot
+# CoffeeShop Polyglot on Dapr
 
 ![coffeeshop-polyglot-highlevelarchirecture](assets/coffeeshop-polyglot-highlevelarchirecture.png)
 
@@ -11,26 +11,19 @@ docker compose up
 ```
 
 ```sh
-cd product-api
-dapr run \
-    --app-id productapi \
-    --app-port 5001 \
-    --resources-path ../components \
-    --config ../components/daprConfig.yaml \
-    -- spin up --listen 0.0.0.0:5001
+make run-product-dapr
 ```
 
 ```sh
-dapr list # see if it runs or not?
+make run-counter-dapr
 ```
 
 ```sh
-dapr run \
-    --app-id counterapi \
-    --app-port 5002 \
-    --resources-path components \
-    --config components/daprConfig.yaml \
-    -- dotnet run --project counter-api/CounterApi.csproj
+make run-barista-dapr
+```
+
+```sh
+make run-kitchen-dapr
 ```
 
 Then, playing around with it at [client.local.http](client.local.http)!
@@ -54,3 +47,13 @@ Init dapr 1.11-rc
 ```sh
 dapr init --runtime-version 1.11.0-rc.7
 ```
+
+## Kubernetes
+
+### kwasm (kind)
+
+TODO
+
+### AKS
+
+TODO

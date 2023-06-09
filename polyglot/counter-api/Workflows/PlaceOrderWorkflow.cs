@@ -14,6 +14,7 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
     public override async Task<PlaceOrderWorkflowResult> RunAsync(WorkflowContext context, PlaceOrderCommand input)
     {
         var orderId = context.InstanceId;
+        input.OrderId = new Guid(orderId);
         
         await context.CallActivityAsync(
             nameof(NotifyActivity),

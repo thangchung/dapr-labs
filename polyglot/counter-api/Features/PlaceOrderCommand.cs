@@ -41,7 +41,7 @@ internal class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, IResult>
 
         var itemTypes = new List<ItemType> { ItemType.ESPRESSO };
         var items = await _itemGateway.GetItemsByType(itemTypes.ToArray());
-        _logger.LogInformation("Query xxx: {JsonObject}", JsonConvert.SerializeObject(items));
+        _logger.LogInformation("[ProductAPI] Query: {JsonObject}", JsonConvert.SerializeObject(items));
         
         var orderId = Guid.NewGuid().ToString();
         await _daprClient.StartWorkflowAsync(

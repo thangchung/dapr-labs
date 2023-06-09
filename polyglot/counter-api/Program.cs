@@ -1,12 +1,15 @@
 using System.Net;
 using System.Text.Json;
+using CoffeeShop.Contracts;
 using CounterApi.Activities;
 using CounterApi.Domain;
 using CounterApi.Features;
 using CounterApi.Infrastructure.Data;
 using CounterApi.Infrastructure.Gateways;
 using CounterApi.Workflows;
+using Dapr;
 using Dapr.Workflow;
+using MediatR;
 using N8T.Infrastructure;
 using N8T.Infrastructure.Controller;
 using N8T.Infrastructure.EfCore;
@@ -65,10 +68,46 @@ app.UseRouting();
 
 app.UseCloudEvents();
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "");
 
 _ = app.MapOrderInApiRoutes()
     .MapOrderFulfillmentApiRoutes();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapSubscribeHandler();
+
+    var baristaOrderUpdatedTopic = new TopicOptions
+    {
+        PubsubName = "baristapubsub",
+        Name = "baristaorderupdated",
+        DeadLetterTopic = "baristaorderupdatedDeadLetterTopic"
+    };
+
+    endpoints.MapPost(
+        "subscribe_BaristaOrderUpdated",
+        async (BaristaOrderUpdated @event, ISender sender) => await sender.Send(
+            new OrderUpdatedCommand(
+                @event.OrderId,
+                @event.ItemLines))
+    ).WithTopic(baristaOrderUpdatedTopic);
+
+    var kitchenOrderUpdatedTopic = new TopicOptions
+    {
+        PubsubName = "kitchenpubsub",
+        Name = "kitchenorderupdated",
+        DeadLetterTopic = "kitchenorderupdatedDeadLetterTopic"
+    };
+    
+    endpoints.MapPost(
+        "subscribe_KitchenOrderUpdated",
+        async (KitchenOrderUpdated @event, ISender sender) => await sender.Send(
+            new OrderUpdatedCommand(
+                @event.OrderId,
+                @event.ItemLines,
+                IsBarista: false))
+    ).WithTopic(kitchenOrderUpdatedTopic);
+});
 
 await app.DoDbMigrationAsync(app.Logger);
 

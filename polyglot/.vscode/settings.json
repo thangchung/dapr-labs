@@ -4,7 +4,9 @@
         "editor.defaultFormatter": "rust-lang.rust-analyzer"
     },
     "rust-analyzer.linkedProjects": [
-        "product-api/Cargo.toml"
+        "product-api/Cargo.toml",
+        "barista-api/Cargo.toml",
+        "kitchen-api/Cargo.toml"
     ],
     "rust-analyzer.checkOnSave": true,
     // VS Code don't watch files under ./target

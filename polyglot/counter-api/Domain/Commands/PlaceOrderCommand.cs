@@ -4,6 +4,7 @@ namespace CounterApi.Domain.Commands;
 
 public class PlaceOrderCommand : IRequest<IResult>
 {
+    public Guid OrderId { get; set; }
     public CommandType CommandType { get; set; } = CommandType.PLACE_ORDER;
     public OrderSource OrderSource { get; set; }
     public Location Location { get; set; }

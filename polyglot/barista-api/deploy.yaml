@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: barista-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: barista-api
+  template:
+    metadata:
+      labels:
+        app: barista-api
+    spec:
+      runtimeClassName: wasmtime-spin
+      containers:
+        - name: barista-api
+          image: ghcr.io/thangchung/dapr-labs/barista-api-spin:1.0.0
+          command: ["/"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: barista-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: barista-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: barista-api
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /barista-api
+            pathType: Prefix
+            backend:
+              service:
+                name: barista-api
+                port:
+                  number: 80

@@ -14,6 +14,7 @@
         "davidanson.vscode-markdownlint",
         "cweijan.vscode-database-client2",
         "bierner.markdown-mermaid",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
         //rust
         "vadimcn.vscode-lldb",
         "rust-lang.rust-analyzer",

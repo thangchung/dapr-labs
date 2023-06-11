@@ -26,3 +26,7 @@ chrono = { version = "0.4", features = ["serde"] }
 serde_json = "1.0.96"
 
 [workspace]
+
+[profile.release]
+strip = true
+lto = true

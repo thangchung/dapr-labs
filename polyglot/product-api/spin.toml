@@ -1,3 +1,4 @@
+# spin_version = "1"
 spin_manifest_version = "1"
 authors = ["thangchung <thangchung@ymail.com>"]
 description = ""

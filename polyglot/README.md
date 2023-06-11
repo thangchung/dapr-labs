@@ -52,8 +52,25 @@ dapr init --runtime-version 1.11.0-rc.7
 
 ### kwasm (kind)
 
-TODO
+Scaffold service (gen Dockerfile and deploy.yaml)
+
+```sh
+spin k8s scaffold ghcr.io/dapr-labs
+```
+
+Deploy and run
+
+```sh
+kind create cluster
+kubectl cluster-info --context kind-kind
+# Follows guidance at here https://kwasm.sh/quickstart/
+kubectl port-forward deployment/product-api 80:80
+# cannot load balancer
+# todo: dapr init -k 
+```
 
 ### AKS
 
 TODO
+
+Issue at: https://github.com/fermyon/spin/issues/1069#issuecomment-1586195017

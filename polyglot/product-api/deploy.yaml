@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: product-api
+  template:
+    metadata:
+      labels:
+        app: product-api
+    spec:
+      runtimeClassName: wasmtime-spin-v1
+      containers:
+        - name: product-api
+          image: ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.0
+          command: ["/"]
+          ports:
+          - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  selector:
+    app: product-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: product-api
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /product-api
+            pathType: Prefix
+            backend:
+              service:
+                name: product-api
+                port:
+                  number: 80

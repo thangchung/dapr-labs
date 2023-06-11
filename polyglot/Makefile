@@ -51,3 +51,21 @@ run-kitchen-dapr:
     -- spin up --listen 0.0.0.0:5004 --env DAPR_URL=${DAPR_URL} && \
 	cd -
 .PHONY: run-kitchen-dapr
+
+docker-build-product:
+    cd product-api && \
+    docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.0 . --push && \
+    cd -
+.PHONY: docker-build-product
+
+docker-build-barista:
+    cd barista-api && \
+    docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/barista-api-spin:1.0.0 . --push && \
+    cd -
+.PHONY: docker-build-barista
+
+docker-build-kitchen:
+    cd kitchen-api && \
+    docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/kitchen-api-spin:1.0.0 . --push && \
+    cd -
+.PHONY: docker-build-kitchen

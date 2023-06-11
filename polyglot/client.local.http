@@ -1,13 +1,21 @@
-@host = http://localhost:8080
+@host = http://localhost
 @counter_host = http://localhost:5002
 
 ###
-GET {{host}}/product/v1/api/item-types HTTP/1.1
+GET {{host}}/ HTTP/1.1
 content-type: application/json
 
 ###
-GET {{host}}/product/v1/api/items-by-types/1,2,3 HTTP/1.1
+GET {{host}}/v1-get-item-types HTTP/1.1
 content-type: application/json
+
+###
+GET {{host}}/v1-get-items-by-types HTTP/1.1
+content-type: application/json
+
+{
+  "types": "1,2,3"
+}
 
 ###
 POST {{counter_host}}/v1/api/orders HTTP/1.1

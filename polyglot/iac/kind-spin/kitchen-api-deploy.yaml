@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kitchen-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kitchen-api
+  template:
+    metadata:
+      labels:
+        app: kitchen-api
+    spec:
+      runtimeClassName: wasmtime-spin
+      containers:
+        - name: kitchen-api
+          image: ghcr.io/thangchung/dapr-labs/kitchen-api-spin:1.0.0
+          command: ["/"]
+          ports:
+          - containerPort: 3000
+          env:
+          - name: RUST_BACKTRACE
+            value: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kitchen-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5004
+      targetPort: 3000
+  selector:
+    app: kitchen-api

@@ -1,4 +1,4 @@
-@host = http://localhost:5002
+@host = http://localhost:5001
 @counter_host = http://localhost:5002
 
 ### Dapr Product API

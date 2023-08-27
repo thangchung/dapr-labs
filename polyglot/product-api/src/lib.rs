@@ -35,6 +35,7 @@ impl TryFrom<&Option<Bytes>> for GetItemByTypeModel {
 #[http_component]
 fn handle_product_api(req: Request) -> Result<Response> {
     println!("{:?}", req.headers());
+
     let mut router = spin_sdk::http::Router::default();
     router.get("/", health_handler);
     router.get("/v1-get-item-types", get_item_types_handler);

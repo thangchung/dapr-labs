@@ -11,6 +11,11 @@ spec:
     metadata:
       labels:
         app: product-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "productapi"
+        dapr.io/app-port: "3000"
+        dapr.io/enable-api-logging: "true"
     spec:
       runtimeClassName: wasmtime-spin
       containers:
@@ -22,6 +27,13 @@ spec:
           env:
           - name: RUST_BACKTRACE
             value: "1"
+          resources: # limit the resources to 128Mi of memory and 100m of CPU
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
 ---
 apiVersion: v1
 kind: Service

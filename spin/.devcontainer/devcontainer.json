@@ -4,6 +4,9 @@
     // "image": "mcr.microsoft.com/devcontainers/rust:0-1-bullseye",
     "build": {
         "dockerfile": "Dockerfile"
+        // "args": {
+        //     "BUILDKIT_INLINE_CACHE": "1"
+        // }
     },
     "customizations": {
         "vscode": {
@@ -55,7 +58,7 @@
         "onAutoForward": "ignore"
     },
     "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:1": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2.2.1": {
             "moby": false
         },
         "ghcr.io/dapr/cli/dapr-cli:0": {}

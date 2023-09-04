@@ -7,4 +7,3 @@ RUN cargo build --target wasm32-wasi --release
 FROM scratch
 COPY --from=build /product/target/wasm32-wasi/release/product_api.wasm /target/wasm32-wasi/release/product_api.wasm
 COPY ./spin.toml /spin.toml
-ENTRYPOINT ["/"]

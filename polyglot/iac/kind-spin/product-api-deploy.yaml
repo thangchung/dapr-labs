@@ -13,17 +13,15 @@ spec:
         app: product-api
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "productapi"
-        dapr.io/app-port: "3000"
+        dapr.io/app-id: "product-api"
+        dapr.io/app-port: "80"
         dapr.io/enable-api-logging: "true"
     spec:
       runtimeClassName: wasmtime-spin
       containers:
         - name: product-api
-          image: ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.0
+          image: ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.1
           command: ["/"]
-          ports:
-          - containerPort: 3000
           env:
           - name: RUST_BACKTRACE
             value: "1"
@@ -44,6 +42,6 @@ spec:
   ports:
     - protocol: TCP
       port: 5001
-      targetPort: 3000
+      targetPort: 80
   selector:
     app: product-api

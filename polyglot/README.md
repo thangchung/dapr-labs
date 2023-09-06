@@ -74,3 +74,21 @@ kubectl port-forward deployment/product-api 80:80
 TODO
 
 Issue at: https://github.com/fermyon/spin/issues/1069#issuecomment-1586195017
+
+### Trouble shooting
+
+- Error with `docker buildx build ...` with `WSL2` - `Ubuntu 22.02` with `cgroup v2`
+
+  ```
+  ERROR: Error response from daemon: cgroup-parent for systemd cgroup should be a valid slice named as "xxx.slice"
+  ```
+
+  Fixed it at: https://github.com/containerd/runwasi/issues/288#issuecomment-1707764979
+
+  > we might need to create default builder as
+
+  ```sh
+  docker buildx create --use --name builder tcp://builder:2375 --platform linux/amd64,linux/386,linux/arm/v6,linux/arm64,linux/arm/v7 --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=10000000,env.BUILDKIT_STEP_LOG_MAX_SPEED=1000000000
+  ```
+
+  `cgroup v2` knowledge => https://blog.kintone.io/entry/2022/03/08/170206

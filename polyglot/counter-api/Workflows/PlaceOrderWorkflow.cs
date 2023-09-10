@@ -1,7 +1,8 @@
-using CoffeeShop.Contracts;
 using CounterApi.Activities;
-using Dapr.Workflow;
 using CounterApi.Domain.Commands;
+using CounterApi.Domain.Messages;
+
+using Dapr.Workflow;
 
 namespace CounterApi.Workflows;
 
@@ -13,16 +14,26 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
 {
     public override async Task<PlaceOrderWorkflowResult> RunAsync(WorkflowContext context, PlaceOrderCommand input)
     {
-        var orderId = context.InstanceId;
-        input.OrderId = new Guid(orderId);
-        
+        var retryOptions = new WorkflowTaskOptions
+        {
+            RetryPolicy = new WorkflowRetryPolicy(
+                firstRetryInterval: TimeSpan.FromMinutes(1),
+                backoffCoefficient: 2.0,
+                maxRetryInterval: TimeSpan.FromHours(1),
+                maxNumberOfAttempts: 10),
+        };
+
+        input.OrderId = new Guid(context.InstanceId);
+
         await context.CallActivityAsync(
             nameof(NotifyActivity),
-            new Notification($"Received order {orderId}"));
+            new Notification($"Received order {context.InstanceId}"),
+            retryOptions);
 
         var result = await context.CallActivityAsync<PlaceOrderResult>(
             nameof(AddOrderActivity),
-            input);
+            input,
+            retryOptions);
 
         if (result.Success)
         {
@@ -32,28 +43,34 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
                 context.SetCustomStatus("Waiting for barista & kitchen events");
                 var baristaOrderUpdatedEvent = context.WaitForExternalEventAsync<BaristaOrderUpdated>(
                     eventName: "BaristaOrderUpdated",
-                    timeout: TimeSpan.FromSeconds(15));
+                    timeout: TimeSpan.FromSeconds(30)); //todo: read from inputParams, make sure it is deterministic
 
                 var kitchenOrderUpdatedEvent = context.WaitForExternalEventAsync<KitchenOrderUpdated>(
                     eventName: "KitchenOrderUpdated",
-                    timeout: TimeSpan.FromSeconds(15));
+                    timeout: TimeSpan.FromSeconds(30)); //todo: read from inputParams, make sure it is deterministic
 
                 await Task.WhenAll(baristaOrderUpdatedEvent, kitchenOrderUpdatedEvent);
 
                 var baristaOrderUpdatedResult = await baristaOrderUpdatedEvent;
                 var kitchenOrderUpdatedResult = await kitchenOrderUpdatedEvent;
 
-                await context.CallActivityAsync(
-                    nameof(BaristaUpdateOrderActivity),
-                    baristaOrderUpdatedResult);
+                // merge items
+                foreach (var temp in kitchenOrderUpdatedResult.ItemLines)
+                {
+                    baristaOrderUpdatedResult.ItemLines.Add(temp);
+                }
 
                 await context.CallActivityAsync(
-                    nameof(KitchenUpdateOrderActivity),
-                    kitchenOrderUpdatedResult);
+                    nameof(UpdateOrderActivity),
+                    baristaOrderUpdatedResult,
+                    retryOptions);
+
+                context.SetCustomStatus($"Order {context.InstanceId} completed.");
 
                 await context.CallActivityAsync(
                     nameof(NotifyActivity),
-                    new Notification($"Completed: order {orderId}"));
+                    new Notification($"Completed: order {context.InstanceId}"),
+                    retryOptions);
             }
             catch (TaskCanceledException)
             {
@@ -62,10 +79,11 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
 
                 await context.CallActivityAsync(
                     nameof(NotifyActivity),
-                    new Notification($"Failed: order {orderId} (refund money)"));
+                    new Notification($"Failed: order {context.InstanceId} (refund money)"),
+                    retryOptions);
 
                 context.SetCustomStatus(
-                    "Stopped order process due to time-out when called to barista & kitchen actions.");
+                    "[TaskCanceledException] Stopped order process due to time-out when called to barista & kitchen actions.");
 
                 return new PlaceOrderWorkflowResult(Success: false);
             }
@@ -78,9 +96,10 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
 
                     await context.CallActivityAsync(
                         nameof(NotifyActivity),
-                        new Notification($"Failed: order {orderId} (refund money)"));
+                        new Notification($"Failed: order {context.InstanceId} (refund money)"),
+                        retryOptions);
 
-                    context.SetCustomStatus("Stopped order process due to error in update actions.");
+                    context.SetCustomStatus("[Exception] Stopped order process due to error in update actions.");
 
                     return new PlaceOrderWorkflowResult(Success: false);
                 }
@@ -90,13 +109,14 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
         {
             // todo refund money
             // ...
-            
+
             await context.CallActivityAsync(
                 nameof(NotifyActivity),
-                new Notification($"Failed: order {orderId} (refund money)"));
-            
+                new Notification($"Failed: order {context.InstanceId} (refund money)"),
+                retryOptions);
+
             context.SetCustomStatus("Stopped order process due to place order issue.");
-            
+
             return new PlaceOrderWorkflowResult(Success: false);
         }
 

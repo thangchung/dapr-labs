@@ -1,4 +1,4 @@
-﻿namespace CounterApi.Domain;
+namespace CounterApi.Domain;
 
 public enum OrderSource
 {

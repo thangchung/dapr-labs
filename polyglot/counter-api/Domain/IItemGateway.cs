@@ -1,4 +1,4 @@
-﻿using CoffeeShop.Contracts;
+using CounterApi.Domain.Dtos;
 
 namespace CounterApi.Domain;
 

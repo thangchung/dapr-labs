@@ -3,19 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReverseProxy", "reverse-proxy\ReverseProxy.csproj", "{73D07F39-A687-4440-AF4A-CD55D2563E22}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CounterApi", "counter-api\CounterApi.csproj", "{2BA5E193-74B6-43E2-B9E8-12C77EE69053}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{62DF0E69-7CCF-42EF-ABA9-BCB5C239554D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "N8T.Core", "libs\N8T.Core\N8T.Core.csproj", "{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "N8T.Infrastructure", "libs\N8T.Infrastructure\N8T.Infrastructure.csproj", "{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "N8T.Infrastructure.EfCore", "libs\N8T.Infrastructure.EfCore\N8T.Infrastructure.EfCore.csproj", "{D3FA3C23-9C06-4233-B25E-CFD921DEFD11}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoffeeShop.Contracts", "libs\CoffeeShop.Contracts\CoffeeShop.Contracts.csproj", "{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "counter-api", "counter-api\counter-api.csproj", "{E53618CA-FA78-46CA-9EEE-DDCC9A346FB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,35 +14,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{73D07F39-A687-4440-AF4A-CD55D2563E22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{73D07F39-A687-4440-AF4A-CD55D2563E22}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{73D07F39-A687-4440-AF4A-CD55D2563E22}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{73D07F39-A687-4440-AF4A-CD55D2563E22}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2BA5E193-74B6-43E2-B9E8-12C77EE69053}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2BA5E193-74B6-43E2-B9E8-12C77EE69053}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2BA5E193-74B6-43E2-B9E8-12C77EE69053}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2BA5E193-74B6-43E2-B9E8-12C77EE69053}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3FA3C23-9C06-4233-B25E-CFD921DEFD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3FA3C23-9C06-4233-B25E-CFD921DEFD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3FA3C23-9C06-4233-B25E-CFD921DEFD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3FA3C23-9C06-4233-B25E-CFD921DEFD11}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{77AD8F15-F381-4AE4-BC38-DCAB4F7D4395} = {62DF0E69-7CCF-42EF-ABA9-BCB5C239554D}
-		{C6B6DFA2-5BB1-47DB-AE7C-0FADA7F506D5} = {62DF0E69-7CCF-42EF-ABA9-BCB5C239554D}
-		{D3FA3C23-9C06-4233-B25E-CFD921DEFD11} = {62DF0E69-7CCF-42EF-ABA9-BCB5C239554D}
-		{BF2848E2-C0DE-4C62-A825-88E3B5B2CB19} = {62DF0E69-7CCF-42EF-ABA9-BCB5C239554D}
+		{E53618CA-FA78-46CA-9EEE-DDCC9A346FB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E53618CA-FA78-46CA-9EEE-DDCC9A346FB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E53618CA-FA78-46CA-9EEE-DDCC9A346FB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E53618CA-FA78-46CA-9EEE-DDCC9A346FB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

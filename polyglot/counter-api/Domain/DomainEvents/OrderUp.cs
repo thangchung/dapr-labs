@@ -1,31 +1,16 @@
-﻿using CoffeeShop.Contracts;
-using N8T.Core.Domain;
+using CounterApi.Domain.SharedKernel;
 
 namespace CounterApi.Domain.DomainEvents;
 
-public class OrderUp : EventBase
+public class OrderUp(Guid itemLineId) : IDomainEvent
 {
-    // OrderIn info
-    public Guid ItemLineId { get; }
-
-    public OrderUp(Guid itemLineId)
-    {
-        ItemLineId = itemLineId;
-    }
+    public Guid ItemLineId => itemLineId;
 }
 
-public class BaristaOrderUp : OrderUp
+public class BaristaOrderUp(Guid itemLineId) : OrderUp(itemLineId)
 {
-    public BaristaOrderUp(Guid itemLineId) 
-        : base(itemLineId)
-    {
-    }
 }
 
-public class KitchenOrderUp : OrderUp
+public class KitchenOrderUp(Guid itemLineId) : OrderUp(itemLineId)
 {
-    public KitchenOrderUp(Guid itemLineId)
-        : base(itemLineId)
-    {
-    }
 }

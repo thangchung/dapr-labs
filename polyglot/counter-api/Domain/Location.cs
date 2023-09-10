@@ -1,8 +1,8 @@
-﻿namespace CounterApi.Domain;
+namespace CounterApi.Domain;
 
 public enum Location
 {
-    ATLANTA, 
-    CHARLOTTE, 
+    ATLANTA,
+    CHARLOTTE,
     RALEIGH
 }

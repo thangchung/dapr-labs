@@ -1,8 +1,8 @@
-﻿namespace CounterApi.Domain;
+namespace CounterApi.Domain;
 
 public enum OrderStatus
 {
-    PLACED, 
-    IN_PROGRESS, 
+    PLACED,
+    IN_PROGRESS,
     FULFILLED
 }

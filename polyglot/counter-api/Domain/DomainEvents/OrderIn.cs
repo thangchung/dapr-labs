@@ -1,36 +1,19 @@
-﻿using CoffeeShop.Contracts;
-using N8T.Core.Domain;
+using CounterApi.Domain.SharedKernel;
 
 namespace CounterApi.Domain.DomainEvents;
 
-public class OrderIn : EventBase
+public class OrderIn(Guid orderId, Guid itemLineId, ItemType itemType) : IDomainEvent
 {
-    public Guid OrderId { get; set; }
-    public Guid ItemLineId { get; set; }
-    public ItemType ItemType { get; set; }
-    public DateTime TimeIn { get; set; }
-
-    public OrderIn(Guid orderId, Guid itemLineId, ItemType itemType)
-    {
-        OrderId = orderId;
-        ItemLineId = itemLineId;
-        ItemType = itemType;
-        TimeIn = DateTime.UtcNow;
-    }
+    public Guid OrderId { get; set; } = orderId;
+    public Guid ItemLineId { get; set; } = itemLineId;
+    public ItemType ItemType { get; set; } = itemType;
+    public DateTime TimeIn { get; set; } = DateTime.UtcNow;
 }
 
-public class BaristaOrderIn : OrderIn
+public class BaristaOrderIn(Guid orderId, Guid itemLineId, ItemType itemType) : OrderIn(orderId, itemLineId, itemType)
 {
-    public BaristaOrderIn(Guid orderId, Guid itemLineId, ItemType itemType) 
-        : base(orderId, itemLineId, itemType)
-    {
-    }
 }
 
-public class KitchenOrderIn : OrderIn
+public class KitchenOrderIn(Guid orderId, Guid itemLineId, ItemType itemType) : OrderIn(orderId, itemLineId, itemType)
 {
-    public KitchenOrderIn(Guid orderId, Guid itemLineId, ItemType itemType)
-        : base(orderId, itemLineId, itemType)
-    {
-    }
 }

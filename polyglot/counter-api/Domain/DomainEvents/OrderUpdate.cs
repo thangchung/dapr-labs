@@ -1,9 +1,8 @@
-﻿using N8T.Core.Domain;
-using CoffeeShop.Contracts;
+using CounterApi.Domain.SharedKernel;
 
 namespace CounterApi.Domain.DomainEvents;
 
-public class OrderUpdate : EventBase
+public class OrderUpdate : IDomainEvent
 {
     public Guid OrderId { get; }
     public Guid ItemLineId { get; }

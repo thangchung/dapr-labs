@@ -1,43 +1,55 @@
-using CoffeeShop.Contracts;
 using CounterApi.Domain;
 using CounterApi.Domain.Commands;
 using CounterApi.Domain.DomainEvents;
+using CounterApi.Domain.Dtos;
+using CounterApi.Domain.Messages;
+using CounterApi.Domain.SharedKernel;
 using CounterApi.Workflows;
+
 using Dapr.Client;
 using Dapr.Workflow;
-using N8T.Core.Domain;
-using N8T.Core.Repository;
+
+using Newtonsoft.Json;
 
 namespace CounterApi.Activities;
 
-public class AddOrderActivity : WorkflowActivity<PlaceOrderCommand, PlaceOrderResult?>
+public class AddOrderActivity(DaprClient daprClient, IItemGateway itemGateway, ILoggerFactory loggerFactory)
+    : WorkflowActivity<PlaceOrderCommand, PlaceOrderResult?>
 {
-    private readonly IRepository<Order> _orderRepository;
-    private readonly IItemGateway _itemGateway;
-    private readonly DaprClient _daprClient;
-    private readonly ILogger _logger;
-
-    public AddOrderActivity(
-        IRepository<Order> orderRepository, 
-        IItemGateway itemGateway, 
-        DaprClient daprClient,
-        ILoggerFactory loggerFactory)
-    {
-        _orderRepository = orderRepository;
-        _itemGateway = itemGateway;
-        _daprClient = daprClient;
-        _logger = loggerFactory.CreateLogger<NotifyActivity>();
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger<NotifyActivity>();
 
     public override async Task<PlaceOrderResult?> RunAsync(WorkflowActivityContext context, PlaceOrderCommand input)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(input);
+
+        _logger.LogInformation("[AddOrderActivity] input={AddOrderActivity-input}", JsonConvert.SerializeObject(input));
         var orderId = context.InstanceId;
 
-        _logger.LogInformation($"Run AddOrderActivity with orderId={orderId}");
-
-        var order = await Order.From(input, _itemGateway);// todo: we might refactor to use DaprClient directly
+        _logger.LogInformation("Run AddOrderActivity with orderId={orderId}", orderId);
+        var order = await Order.From(input, itemGateway);
         order.Id = new Guid(orderId); //todo: not good
-        await _orderRepository.AddAsync(order);
+        _logger.LogInformation("Order={order}", JsonConvert.SerializeObject(order));
+
+        // map domain object to dto
+        var dto = Order.ToDto(order);
+        dto.OrderStatus = OrderStatus.IN_PROGRESS;
+
+        await daprClient.SaveStateAsync("statestore", $"order-{order.Id}", dto);
+
+        // save the order list
+        var orderListState = await daprClient.GetStateEntryAsync<List<Guid>>("statestore", "order-list");
+        if (orderListState.Value == null)
+        {
+            await daprClient.SaveStateAsync("statestore", "order-list", new List<Guid> { order.Id });
+            _logger.LogInformation("orderListState inserted");
+        }
+        else
+        {
+            orderListState.Value.Add(order.Id);
+            var result = await orderListState.TrySaveAsync();
+            _logger.LogInformation("orderListState updated = {IsSucceed}", result);
+        }
 
         var @events = new IDomainEvent[order.DomainEvents.Count];
         order.DomainEvents.CopyTo(@events);
@@ -55,21 +67,16 @@ public class AddOrderActivity : WorkflowActivity<PlaceOrderCommand, PlaceOrderRe
                         baristaEvents.Add(baristaOrderInEvent.OrderId, new BaristaOrderPlaced
                         {
                             OrderId = baristaOrderInEvent.OrderId,
-                            ItemLines = new List<OrderItemDto>
+                            ItemLines = new List<OrderItemLineDto>
                             {
-                                new()
-                                {
-                                    ItemLineId = baristaOrderInEvent.ItemLineId, ItemType = baristaOrderInEvent.ItemType
-                                }
+                                new(baristaOrderInEvent.ItemLineId, baristaOrderInEvent.ItemType, ItemStatus.IN_PROGRESS)
                             }
                         });
                     }
                     else
                     {
-                        baristaEvents[baristaOrderInEvent.OrderId].ItemLines.Add(new OrderItemDto
-                        {
-                            ItemLineId = baristaOrderInEvent.ItemLineId, ItemType = baristaOrderInEvent.ItemType
-                        });
+                        baristaEvents[baristaOrderInEvent.OrderId].ItemLines.Add(
+                            new OrderItemLineDto(baristaOrderInEvent.ItemLineId, baristaOrderInEvent.ItemType, ItemStatus.IN_PROGRESS));
                     }
 
                     break;
@@ -79,21 +86,16 @@ public class AddOrderActivity : WorkflowActivity<PlaceOrderCommand, PlaceOrderRe
                         kitchenEvents.Add(kitchenOrderInEvent.OrderId, new KitchenOrderPlaced
                         {
                             OrderId = kitchenOrderInEvent.OrderId,
-                            ItemLines = new List<OrderItemDto>
+                            ItemLines = new List<OrderItemLineDto>
                             {
-                                new()
-                                {
-                                    ItemLineId = kitchenOrderInEvent.ItemLineId, ItemType = kitchenOrderInEvent.ItemType
-                                }
+                                new(kitchenOrderInEvent.ItemLineId, kitchenOrderInEvent.ItemType, ItemStatus.IN_PROGRESS)
                             }
                         });
                     }
                     else
                     {
-                        kitchenEvents[kitchenOrderInEvent.OrderId].ItemLines.Add(new OrderItemDto
-                        {
-                            ItemLineId = kitchenOrderInEvent.ItemLineId, ItemType = kitchenOrderInEvent.ItemType
-                        });
+                        kitchenEvents[kitchenOrderInEvent.OrderId].ItemLines.Add(
+                            new OrderItemLineDto(kitchenOrderInEvent.ItemLineId, kitchenOrderInEvent.ItemType, ItemStatus.IN_PROGRESS));
                     }
 
                     break;
@@ -104,7 +106,7 @@ public class AddOrderActivity : WorkflowActivity<PlaceOrderCommand, PlaceOrderRe
         {
             foreach (var @event in baristaEvents)
             {
-                await _daprClient.PublishEventAsync(
+                await daprClient.PublishEventAsync(
                     "baristapubsub",
                     nameof(BaristaOrderPlaced).ToLowerInvariant(),
                     @event.Value);
@@ -115,7 +117,7 @@ public class AddOrderActivity : WorkflowActivity<PlaceOrderCommand, PlaceOrderRe
         {
             foreach (var @event in kitchenEvents)
             {
-                await _daprClient.PublishEventAsync(
+                await daprClient.PublishEventAsync(
                     "kitchenpubsub",
                     nameof(KitchenOrderPlaced).ToLowerInvariant(),
                     @event.Value);

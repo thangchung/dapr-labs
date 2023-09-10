@@ -1,6 +1,16 @@
-﻿using MediatR;
+using MediatR;
 
 namespace CounterApi.Domain.Commands;
+
+public class CommandItem
+{
+    public ItemType ItemType { get; set; }
+}
+
+public enum CommandType
+{
+    PLACE_ORDER
+}
 
 public class PlaceOrderCommand : IRequest<IResult>
 {

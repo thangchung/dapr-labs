@@ -68,8 +68,7 @@ fn handle_barista_api(req: Request) -> Result<Response> {
     println!("{:?}", req.headers());
     let mut router = spin_sdk::http::Router::default();
     router.get("/", health_handler);
-    router.get("/dapr/subscribe", get_subscribe_handler);
-    router.post("/place-order", post_place_order_handler);
+    router.post("/dapr_subscribe_BaristaOrdered", post_place_order_handler);
     router.handle(req)
 }
 
@@ -77,22 +76,6 @@ fn health_handler(_req: Request, _params: Params) -> Result<Response> {
     Ok(http::Response::builder()
         .status(200)
         .body(Some("".into()))?)
-}
-
-fn get_subscribe_handler(_req: Request, _params: Params) -> Result<Response> {
-    let subscribe_model = vec![SubscribeModel {
-        pubsubname: "baristapubsub".to_string(),
-        topic: "baristaorderplaced".to_string(),
-        route: "place-order".to_string(),
-    }];
-
-    let subscribe_model_json = json!(subscribe_model);
-    let result = bytes::Bytes::from(subscribe_model_json.to_string());
-
-    Ok(http::Response::builder()
-        .header("Content-Type", "application/json")
-        .status(200)
-        .body(Some(result))?)
 }
 
 fn post_place_order_handler(req: Request, _params: Params) -> Result<Response> {

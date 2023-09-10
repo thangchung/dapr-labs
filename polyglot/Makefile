@@ -24,7 +24,7 @@ run-counter-dapr:
     --dapr-http-port 54321 \
     --resources-path components \
     --config components/daprConfig.yaml \
-    -- dotnet run --project counter-api/CounterApi.csproj \
+    -- dotnet run --project counter-api/counter-api.csproj \
 	cd -
 .PHONY: run-counter-dapr
 

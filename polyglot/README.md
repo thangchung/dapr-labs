@@ -6,9 +6,13 @@
 
 See how to init [Dapr](#dapr) as below
 
-```sh
-docker compose up
+Create `.env` file as below
+
+```env
+DAPR_URL=http://localhost:54321
 ```
+
+Then, run commands below
 
 ```sh
 make run-product-dapr

@@ -21,7 +21,7 @@ run-counter-dapr:
 	dapr run \
     --app-id counterapi \
     --app-port 5002 \
-    --dapr-http-port 54321 \
+    --dapr-http-port 3500 \
     --resources-path components \
     --config components/daprConfig.yaml \
     -- dotnet run --project counter-api/counter-api.csproj \

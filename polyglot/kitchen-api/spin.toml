@@ -8,7 +8,7 @@ version = "0.1.0"
 [[component]]
 id = "kitchen-api"
 source = "target/wasm32-wasi/release/kitchen_api.wasm"
-environment = { DAPR_URL = "http://localhost:54321" }
+environment = { DAPR_URL = "http://localhost:3500" }
 allowed_http_hosts = ["insecure:allow-all"]
 [component.trigger]
 route = "/..."

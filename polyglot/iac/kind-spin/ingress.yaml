@@ -8,8 +8,8 @@ spec:
   stripPrefix:
     forceSlash: false
     prefixes:
-    - /p
-    - /c
+      - /p
+      - /c
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -21,19 +21,19 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix@kubernetescrd
 spec:
   rules:
-  - http:
-      paths:
-      - path: /p
-        pathType: Prefix
-        backend:
-          service:
-            name: product-api
-            port:
-              number: 5001
-      - path: /c
-        pathType: Prefix
-        backend:
-          service:
-            name: counter-api
-            port:
-              number: 5002
+    - http:
+        paths:
+          - path: /p
+            pathType: Prefix
+            backend:
+              service:
+                name: product-api
+                port:
+                  number: 5001
+          - path: /c
+            pathType: Prefix
+            backend:
+              service:
+                name: counter-api
+                port:
+                  number: 5002

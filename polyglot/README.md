@@ -1,6 +1,6 @@
 # CoffeeShop Polyglot on Dapr
 
-![coffeeshop-polyglot-highlevelarchirecture](assets/coffeeshop-polyglot-highlevelarchirecture.png)
+![coffeeshop-polyglot-highlevelarchirecture](assets/high-level-architecture.png)
 
 ## Get starting
 
@@ -9,7 +9,7 @@ See how to init [Dapr](#dapr) as below
 Create `.env` file as below
 
 ```env
-DAPR_URL=http://localhost:54321
+DAPR_URL=http://localhost:3500
 ```
 
 Then, run commands below

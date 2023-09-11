@@ -1,0 +1,66 @@
+{
+    "name": "Dapr & Spin",
+    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+    // "image": "mcr.microsoft.com/devcontainers/rust:0-1-bullseye",
+    "build": {
+        "dockerfile": "Dockerfile"
+        // "args": {
+        //     "BUILDKIT_INLINE_CACHE": "1"
+        // }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mutantdino.resourcemonitor",
+                "humao.rest-client",
+                "bungcip.better-toml",
+                "ms-vscode.makefile-tools",
+                "davidanson.vscode-markdownlint",
+                "cweijan.vscode-database-client2",
+                "bierner.markdown-mermaid",
+                "vadimcn.vscode-lldb",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "serayuzgur.crates",
+                "esbenp.prettier-vscode",
+                "foxundermoon.shell-format",
+                "irongeek.vscode-env",
+                "golang.Go",
+                "ms-dotnettools.vscode-dotnet-runtime",
+                "ms-dotnettools.csharp",
+                "alexcvzz.vscode-sqlite",
+                "qwtel.sqlite-viewer"
+            ]
+        },
+        // Use 'mounts' to make the cargo cache persistent in a Docker Volume.
+        // "mounts": [
+        // 	{
+        // 		"source": "devcontainer-cargo-cache-${devcontainerId}",
+        // 		"target": "/usr/local/cargo",
+        // 		"type": "volume"
+        // 	}
+        // ]
+        // Use 'forwardPorts' to make a list of ports inside the container available locally.
+        "forwardPorts": [
+            5001,
+            5002,
+            5003,
+            5004
+        ]
+        // Use 'postCreateCommand' to run commands after the container is created.
+        // "postCreateCommand": "rustc --version",
+        // Configure tool-specific properties.
+        // "customizations": {},
+        // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+        // "remoteUser": "root"
+    },
+    "otherPortsAttributes": {
+        "onAutoForward": "ignore"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2.2.1": {
+            "moby": false
+        },
+        "ghcr.io/dapr/cli/dapr-cli:0": {}
+    }
+}

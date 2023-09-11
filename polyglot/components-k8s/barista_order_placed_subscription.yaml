@@ -1,0 +1,8 @@
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: barista-ordered-subscription
+spec:
+  topic: baristaorderplaced
+  route: /dapr_subscribe_BaristaOrdered
+  pubsubname: baristapubsub

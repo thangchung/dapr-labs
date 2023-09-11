@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kitchen-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kitchen-api
+  template:
+    metadata:
+      labels:
+        app: kitchen-api
+    spec:
+      runtimeClassName: wasmtime-spin
+      containers:
+        - name: kitchen-api
+          image: ghcr.io/thangchung/dapr-labs/kitchen-api-spin:1.0.0
+          command: ["/"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kitchen-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: kitchen-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kitchen-api
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /kitchen-api
+            pathType: Prefix
+            backend:
+              service:
+                name: kitchen-api
+                port:
+                  number: 80

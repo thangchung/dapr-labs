@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-api
+  template:
+    metadata:
+      labels:
+        app: product-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "product-api"
+        dapr.io/app-port: "80"
+        dapr.io/enable-api-logging: "true"
+    spec:
+      runtimeClassName: wasmtime-spin
+      containers:
+        - name: product-api
+          image: ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.1
+          command: ["/"]
+          env:
+            - name: RUST_BACKTRACE
+              value: "1"
+          resources: # limit the resources to 128Mi of memory and 100m of CPU
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 80
+  selector:
+    app: product-api

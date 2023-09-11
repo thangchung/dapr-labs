@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: counter-api
+  template:
+    metadata:
+      labels:
+        app: counter-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "counter-api"
+        dapr.io/app-port: "8080"
+        dapr.io/enable-api-logging: "true"
+    spec:
+      containers:
+        - name: counter-api
+          image: ghcr.io/thangchung/dapr-labs/counter-api-polyglot:1.0.0
+          env:
+            - name: ProductCatalogAppDaprName
+              value: "product-api"
+          resources: # limit the resources to 128Mi of memory and 100m of CPU
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-api
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 8080
+  selector:
+    app: counter-api

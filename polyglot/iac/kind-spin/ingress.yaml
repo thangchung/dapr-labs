@@ -1,0 +1,39 @@
+# Middleware
+# Strip prefix /spin
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix
+spec:
+  stripPrefix:
+    forceSlash: false
+    prefixes:
+      - /p
+      - /c
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: polyglot-wasm-ingress
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /p
+            pathType: Prefix
+            backend:
+              service:
+                name: product-api
+                port:
+                  number: 5001
+          - path: /c
+            pathType: Prefix
+            backend:
+              service:
+                name: counter-api
+                port:
+                  number: 5002

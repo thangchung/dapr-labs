@@ -1,0 +1,8 @@
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: kitchen-updated-subscription
+spec:
+  topic: kitchenorderupdated
+  route: /dapr_subscribe_KitchenOrderUpdated
+  pubsubname: kitchenpubsub

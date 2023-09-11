@@ -11,17 +11,29 @@ spec:
     metadata:
       labels:
         app: barista-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "barista-api"
+        dapr.io/app-port: "80"
+        dapr.io/enable-api-logging: "true"
     spec:
       runtimeClassName: wasmtime-spin
       containers:
-        - name: barista-api
-          image: ghcr.io/thangchung/dapr-labs/barista-api-spin:1.0.0
-          command: ["/"]
-          ports:
-          - containerPort: 3000
-          env:
-          - name: RUST_BACKTRACE
-            value: "1"
+      - name: barista-api
+        image: ghcr.io/thangchung/dapr-labs/barista-api-spin:1.0.0
+        command: ["/"]
+        env:
+        - name: RUST_BACKTRACE
+          value: "1"
+        - name: DAPR_URL
+          value: "http://localhost:3500"
+        resources: # limit the resources to 128Mi of memory and 100m of CPU
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -30,8 +42,8 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - protocol: TCP
-      port: 5003
-      targetPort: 3000
+  - protocol: TCP
+    port: 5003
+    targetPort: 80
   selector:
     app: barista-api

@@ -1,32 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kitchen-api
+  name: counter-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kitchen-api
+      app: counter-api
   template:
     metadata:
       labels:
-        app: kitchen-api
+        app: counter-api
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "kitchen-api"
-        dapr.io/app-port: "80"
+        dapr.io/app-id: "counter-api"
+        dapr.io/app-port: "8080"
         dapr.io/enable-api-logging: "true"
     spec:
-      runtimeClassName: wasmtime-spin
       containers:
-      - name: kitchen-api
-        image: ghcr.io/thangchung/dapr-labs/kitchen-api-spin:1.0.0
-        command: ["/"]
+      - name: counter-api
+        image: ghcr.io/thangchung/dapr-labs/counter-api-polyglot:1.0.0
         env:
-        - name: RUST_BACKTRACE
-          value: "1"
-        - name: DAPR_URL
-          value: "http://localhost:3500"
+        - name: ProductCatalogAppDaprName
+          value: "product-api"
         resources: # limit the resources to 128Mi of memory and 100m of CPU
           limits:
             cpu: 100m
@@ -38,12 +34,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kitchen-api
+  name: counter-api
 spec:
   type: LoadBalancer
   ports:
   - protocol: TCP
-    port: 5004
-    targetPort: 80
+    port: 5002
+    targetPort: 8080
   selector:
-    app: kitchen-api
+    app: counter-api

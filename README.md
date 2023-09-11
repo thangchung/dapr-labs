@@ -1,8 +1,8 @@
-# try-nomad-dapr
+# Dapr Labs
 
-DevContainer features => https://containers.dev/features
+## Sub Projects:
 
-# Refs
-- https://markheath.net/post/dapr-consul-name-resolution
-  - https://github.com/markheath/globoticket-dapr
-- https://github.com/dapr/dapr/issues/3146#issuecomment-1124466256
+- [Polyglot Coffeeshop with Dapr - WebAssembly/WASI (Spin) on Kubernetes + Dapr](polyglot/)
+- [Fully Spin CoffeeShop with Dapr - not completed](/spin/)
+- [Fully Rust CoffeeShop with Dapr](/rust/)
+- [Fully .NET CoffeeShop with Dapr](/dotnet/)

@@ -1,6 +1,6 @@
 # CoffeeShop Polyglot on Dapr
 
-![coffeeshop-polyglot-highlevelarchirecture](assets/high-level-architecture.png)
+![coffeeshop-polyglot-highlevelarchirecture](assets/coffeeshop-high-level-architecture.png)
 
 ## Get starting
 

@@ -1,8 +1,8 @@
 # Part 4: WebAssembly, Docker container, Dapr, and Kubernetes better together - Package the daprized coffee backend services to Docker container and deploy to Kubernetes
 
-In this final part, we will install `k3d`, and `containerd-wasm-shims` which runs `runwasi` inside. It allows us to run WASM/WASI workload with the annotation `runtimeClassName: wasmtime-spin`, and run Docker container (containerd format). If you don't declare the previous annotation on the YAML deployment script. 
+In this final part, we will install `k3d`, and `containerd-wasm-shims` which run `runwasi` inside. It allows us to run WASM/WASI workload with the annotation `runtimeClassName: wasmtime-spin`, and run a Docker container (containerd format). If you don't declare the previous annotation on the YAML deployment script.
 
-Let get started with the setup as the image below.
+Let's get started with the setup as the image below.
 
 ![docker and k8s](img/wasm-dapr-4.png)
 
@@ -415,10 +415,12 @@ NAME                    CLASS    HOSTS   ADDRESS                            PORT
 polyglot-wasm-ingress   <none>   *       172.19.0.2,172.19.0.4,172.19.0.5   80      2d1h
 ```
 
-If everything is okay, then we can play around with Rest Client at [client.k3d.http](https://github.com/thangchung/dapr-labs/blob/main/polyglot/client.k3d.http)
+If everything is okay, then we can play around with Rest Client at [client.k3d.http](https://github.com/thangchung/dapr-labs/blob/main/polyglot/client.k3d.http).
 
 ## Summary
 
-So we have already walked through 4 parts of how can we build the polyglot apps with Docker, WebAssembly (Spin), Dapr, and Kubernetes (k3d). There is still obstacles, but the future is bright for WASM apps on Kubernetes due to very active process from the community.
+So we have already walked through 4 parts of how can we build the polyglot apps with Docker, WebAssembly (Spin), Dapr, and Kubernetes (k3d). There are still obstacles, but the future is bright for WASM apps on Kubernetes due to the very active process from the community.
 
-What's next? The WebAssembly/WASI has a [clear roadmap](https://bytecodealliance.org/articles/webassembly-the-updated-roadmap-for-developers). In WasmCon 2023 recently, they mentioned about [`Component Model`](https://component-model.bytecodealliance.org/) and I think that is [a final abstraction](https://cosmonic.com/blog/industry/webassembly-components-the-final-abstraction) as well. It helps a lot in building what [Luke Wagner](https://github.com/lukewagner) call [`Modularity without microservices`](https://wasmcon2023.sched.com/event/1P96K/keynote-what-is-a-component-and-why-luke-wagner-distinguished-engineer-fastly?iframe=no&w=100%&sidebar=yes&bg=no), and we will invest time on it as well. See you in next posts to deep dive more about this kind of component model. Stay stun!
+What's next? The WebAssembly/WASI has a [clear roadmap](https://bytecodealliance.org/articles/webassembly-the-updated-roadmap-for-developers). In WasmCon 2023 recently, they mentioned [`Component Model`](https://component-model.bytecodealliance.org/) and I think that is [a final abstraction](https://cosmonic.com/blog/industry/webassembly-components-the-final-abstraction) in the computing unit. It helps a lot in building what [Luke Wagner](https://github.com/lukewagner) calls [`Modularity without microservices`](https://wasmcon2023.sched.com/event/1P96K/keynote-what-is-a-component-and-why-luke-wagner-distinguished-engineer-fastly?iframe=no&w=100%&sidebar=yes&bg=no), and we will invest time on it as well. See you in the next posts to dive more into this kind of component model.
+
+Stay stun!

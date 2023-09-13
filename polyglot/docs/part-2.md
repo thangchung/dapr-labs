@@ -1,11 +1,11 @@
 # Part 2: WebAssembly, Docker container, Dapr, and Kubernetes better together - Build and run the coffee shop backend services
 
-In previous part, we explored the coffee shop business domain and mastered what we need to implement it. In term of modern architecture, we need to choose what kind of technologies need to focus on to build out the whole solution.
+In the previous part, we explored the coffee shop business domain and mastered what we needed to implement it. In terms of modern architecture, we need to choose what kind of technologies need to focus on to build out the whole solution.
 
-In this part, we will have a look at core components (the data storage and the message broker) and services (`product-api`, `counter-api`, `barista-api`, and `kitchen-api`) in details. But first, we list out what programming language and framework for each service below.
+In this part, we will have a look at core components (the data storage and the message broker) and services (`product-api`, `counter-api`, `barista-api`, and `kitchen-api`) in detail. But first, we list out what programming language and framework for each service below.
 
-- `product-api`: Rust, Spin (a framework for building, deploying, and running fast, secure, and composable cloud microservices with WebAssembly).
-- `counter-api`: .NET 8 and C# 12, Dapr workflow (an asynchronous durable framework makes it easy for developers to write business logic and integrations in a reliable way).
+- `product-api`: Rust, [Spin](https://github.com/fermyon/spin) (a framework for building, deploying, and running fast, secure, and composable cloud microservices with WebAssembly).
+- `counter-api`: .NET 8 and C# 12, [Dapr workflow](https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-overview/) (an asynchronous durable framework makes it easy for developers to write business logic and integrations in a reliable way).
 - `barista-api`: Rust, Spin
 - `kitchen-api`: Rust, Spin
 
@@ -64,7 +64,7 @@ Choose `http-rust`, then type a name is `product-api`, you can see the structure
     └── lib.rs
 ```
 
-After implement the business features for `get-all-items` and `get-item-by-types` below
+After implementing the business features for `get-all-items` and `get-item-by-types` below.
 
 ```rs
 // ref: https://github.com/thangchung/dapr-labs/blob/main/polyglot/product-api/src/lib.rs#L12
@@ -176,7 +176,7 @@ Now, you should run it:
 
 The source code can be found at [product-api](https://github.com/thangchung/dapr-labs/tree/main/polyglot/product-api).
 
-> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See the next part.
 
 ### 2. Counter-API
 
@@ -186,7 +186,7 @@ The source code can be found at [product-api](https://github.com/thangchung/dapr
 > dotnet sln coffeeshop.sln add counter-api.csproj
 ```
 
-Then we add and structure it as `Clean Architecture` structure folder:
+Then we add and structure it as [`Clean Architecture`](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) structure folder:
 
 ```sg
 > tree
@@ -300,7 +300,7 @@ app.Run();
 
 See more source code at [counter-api](https://github.com/thangchung/dapr-labs/tree/main/polyglot/counter-api).
 
-> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See the next part.
 
 ### 3. Ordering workflow
 
@@ -308,7 +308,7 @@ The activity diagram for this workflow:
 
 ![ordering workflow](img/ordering-workflow.png)
 
-The code using `Dapr Workflow` framework (the mechanism to build this workflow-as-code is just like Temporal, Azure Durable Functions,...)
+The code uses `Dapr Workflow` framework (the mechanism to build this workflow-as-code is just like [Temporal](https://temporal.io/), [Netflix Conductor](https://conductor.netflix.com/index.html), [Uber Cadence](https://cadenceworkflow.io/), [Azure Durable Functions](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview),...)
 
 ```cs
 // ref: https://github.com/thangchung/dapr-labs/blob/main/polyglot/counter-api/Workflows/PlaceOrderWorkflow.cs
@@ -428,7 +428,7 @@ public class PlaceOrderWorkflow : Workflow<PlaceOrderCommand, PlaceOrderWorkflow
 }
 ```
 
-The workflow-as-code is easy for developer to run, debug, or even testing this workflow.
+The workflow-as-code is easy for developers to run, debug, or even test this workflow.
 
 The source code can be found at [ordering workflow](https://github.com/thangchung/dapr-labs/blob/main/polyglot/counter-api/Workflows/PlaceOrderWorkflow.cs)
 
@@ -438,7 +438,7 @@ The source code can be found at [ordering workflow](https://github.com/thangchun
 > spin new
 ```
 
-Choose `http-rust`, then type a name is `barista-api`, you can see the structure as:
+Choose `http-rust`, then type the name `barista-api`, you can see the structure as:
 
 ```sh
 > cd barista-api
@@ -624,7 +624,7 @@ Now, you should run it:
 
 The source code can be found at [barista-api](https://github.com/thangchung/dapr-labs/tree/main/polyglot/barista-api).
 
-> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See the next part.
 
 ### 5. Kitchen-API
 
@@ -632,7 +632,7 @@ The source code can be found at [barista-api](https://github.com/thangchung/dapr
 > spin new
 ```
 
-Choose `http-rust`, then type a name is `kitchen-api`, you can see the structure as:
+Choose `http-rust`, then type the name `kitchen-api`, you can see the structure as:
 
 ```sh
 > cd kitchen-api
@@ -819,15 +819,15 @@ Now, you should run it:
 
 The source code can be found at [kitchen-api](https://github.com/thangchung/dapr-labs/tree/main/polyglot/kitchen-api).
 
-> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See the next part.
 
 ### 6. Data storage
 
-The technical requirement for this data storage should be flexibility and portability which means we can replace and swap the data storage components in each environment, e.g. development environment can use `Redis`, but on testing environment can use `Postgres` (if need).
+The technical requirement for this data storage should be flexibility and portability which means we can replace and swap the data storage components in each environment, e.g. development environment can use `Redis`, but on testing environment can use `Postgres` (if needed).
 
-This will store the order data which end-user submitted to API.
+This will store the order data which the end-user submitted to API.
 
-The code for creating a new order as following:
+The code for creating a new order is as follows:
 
 ```cs
 // ref: https://github.com/thangchung/dapr-labs/blob/main/polyglot/counter-api/Activities/AddOrderActivity.cs#L30
@@ -898,7 +898,7 @@ if (orderGuidList != null && orderGuidList?.Count > 0)
 
 The technical requirement for this message broker should be flexibility and portability which means we can replace and swap the message broker components in each environment, e.g. development environment can use `Redis Stream`, but on testing environment can use `Kafka` or `RabbitMQ` (if need).
 
-The code for publishing message (dispatching `domain event`, and transform it into `message` in `cloud-event` format) as following:
+The code for publishing the message (dispatching [`domain event`](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation), and transforming it into `message` in [`cloud-event`](https://cloudevents.io/) format) is as follows.:
 
 `counter-api` in C#:
 
@@ -1000,7 +1000,7 @@ fn pub_order_updated(dapr_url: &str, pubsub_name: &str, topic: &str, e: BaristaO
 }
 ```
 
-> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to daprize it with `daprd`. See the next part.
 
 And, certainly we need the code for subscribing message:
 
@@ -1054,8 +1054,8 @@ fn post_place_order_handler(req: Request, _params: Params) -> Result<Response> {
 }
 ```
 
-> But, if you want to make it work on the runtime, you need to create `subscription` component, and daprize it with `daprd`. See next part for it.
+> But, if you want to make it work on the runtime, you need to create [`subscription`](https://docs.dapr.io/developing-applications/building-blocks/pubsub/subscription-methods/#declarative-subscriptions) components, and daprize it with `daprd`. See the next part.
 
 ## Summary
 
-This part is focus on how can we implement the coffee shop in backend side. And in next part, we will focus on how can we use `dapr` in the local development.
+This part focuses on how can we implement the coffee shop on the backend side. And in the next part, we will focus on how can we use `dapr` in local development.

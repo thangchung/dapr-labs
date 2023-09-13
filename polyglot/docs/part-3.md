@@ -1,6 +1,6 @@
 # Part 3: WebAssembly, Docker container, Dapr, and Kubernetes better together - Prepare Dapr components and daprize the coffee backend services
 
-In this post, we will explore [`Dapr`](https://github.com/dapr/dapr) capabilities such as service invocation, pubsub, and state management. And we will use [`Dapr API`](https://docs.dapr.io/reference/api/) for communicating as well as storing the data between pologlot applications (Rust - WASM/WASI with Spin and .NET with container approaches).
+In this post, we will explore [`Dapr`](https://github.com/dapr/dapr) capabilities such as service invocation, pubsub, and state management. And we will use [`Dapr API`](https://docs.dapr.io/reference/api/) for communicating as well as storing the data between polyglot applications (Rust - WASM/WASI with Spin and .NET with container approaches).
 
 ## Overall Dapr components usage
 
@@ -26,7 +26,7 @@ var httpResponseMessage = await daprClient.InvokeMethodAsync<List<ItemDto>>(
 
 As mentioned in previous part, we use Dapr state management for storing the state of `counter-api` (use `Dapr .NET SDK`), `barista-api` (use [`Dapr State Management API`](https://docs.dapr.io/reference/api/state_api/)), and `kitchen-api` (use [`Dapr State Management API`](https://docs.dapr.io/reference/api/state_api/)).
 
-The sample code for storing data in `counter-api` as following:
+The sample code for storing data in `counter-api` is as follows:
 
 ```cs
 // ref: https://github.com/thangchung/dapr-labs/blob/main/polyglot/counter-api/Activities/AddOrderActivity.cs#L44
@@ -209,7 +209,7 @@ spec:
 
 ```
 
-## Set up and run apps
+## Set up and run Dapr apps
 
 Now, let installing `dapr` in your local machine (Windows 11 - WSL2 - Ubuntu 22.04)
 
@@ -282,4 +282,4 @@ Go to Rest Client at [client.local.http](https://github.com/thangchung/dapr-labs
 
 ## Summary
 
-In this part, we install and play around with `Dapr CLI` on the local machine. Next part, we will deploy it to Kubernetes (k3d), and it's going to be interesting part of this series.
+In this part, we install and play around with `Dapr CLI` on the local machine. Next part, we will deploy it to Kubernetes (k3d), and it's going to be an interesting part of this series.

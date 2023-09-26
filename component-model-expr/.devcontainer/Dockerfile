@@ -40,4 +40,5 @@ RUN (curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash -s -- 
     spin templates install --git https://github.com/radu-matei/spin-kv-explorer --update &&                                 \
     spin templates install --git https://github.com/radu-matei/spin-nextjs --update
 
+RUN curl https://wasmtime.dev/install.sh -sSf | bash
 RUN curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash

@@ -32,6 +32,7 @@
                 "mutantdino.resourcemonitor",
                 "humao.rest-client",
                 "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
                 "golang.Go",
                 "ms-dotnettools.vscode-dotnet-runtime",
                 "ms-dotnettools.csharp",

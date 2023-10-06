@@ -3,7 +3,6 @@
         "editor.defaultFormatter": "rust-lang.rust-analyzer"
     },
     "rust-analyzer.linkedProjects": [
-        "command/Cargo.toml",
         "adder/Cargo.toml",
         "calculator/Cargo.toml",
         "spin-app/Cargo.toml",

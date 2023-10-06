@@ -1,0 +1,324 @@
+package fermyon:spin
+
+interface config {
+  variant error {
+    provider(string),
+    invalid-key(string),
+    invalid-schema(string),
+    other(string),
+  }
+
+  get-config: func(key: string) -> result<string, error>
+}
+
+interface http-types {
+  type http-status = u16
+
+  type body = list<u8>
+
+  type headers = list<tuple<string, string>>
+
+  type params = list<tuple<string, string>>
+
+  type uri = string
+
+  enum method {
+    get,
+    post,
+    put,
+    delete,
+    patch,
+    head,
+    options,
+  }
+
+  record request {
+    method: method,
+    uri: uri,
+    headers: headers,
+    params: params,
+    body: option<body>,
+  }
+
+  record response {
+    status: http-status,
+    headers: option<headers>,
+    body: option<body>,
+  }
+
+  enum http-error {
+    success,
+    destination-not-allowed,
+    invalid-url,
+    request-error,
+    runtime-error,
+    too-many-requests,
+  }
+}
+
+interface http {
+  use http-types.{request, response, http-error}
+
+  send-request: func(req: request) -> result<response, http-error>
+}
+
+interface inbound-http {
+  use http-types.{request, response}
+
+  handle-request: func(req: request) -> response
+}
+
+interface key-value {
+  type store = u32
+
+  variant error {
+    store-table-full,
+    no-such-store,
+    access-denied,
+    invalid-store,
+    no-such-key,
+    io(string),
+  }
+
+  open: func(name: string) -> result<store, error>
+
+  get: func(store: store, key: string) -> result<list<u8>, error>
+
+  set: func(store: store, key: string, value: list<u8>) -> result<_, error>
+
+  delete: func(store: store, key: string) -> result<_, error>
+
+  exists: func(store: store, key: string) -> result<bool, error>
+
+  get-keys: func(store: store) -> result<list<string>, error>
+
+  close: func(store: store)
+}
+
+interface rdbms-types {
+  enum db-data-type {
+    boolean,
+    int8,
+    int16,
+    int32,
+    int64,
+    uint8,
+    uint16,
+    uint32,
+    uint64,
+    floating32,
+    floating64,
+    str,
+    binary,
+    other,
+  }
+
+  variant db-value {
+    boolean(bool),
+    int8(s8),
+    int16(s16),
+    int32(s32),
+    int64(s64),
+    uint8(u8),
+    uint16(u16),
+    uint32(u32),
+    uint64(u64),
+    floating32(float32),
+    floating64(float64),
+    str(string),
+    binary(list<u8>),
+    db-null,
+    unsupported,
+  }
+
+  variant parameter-value {
+    boolean(bool),
+    int8(s8),
+    int16(s16),
+    int32(s32),
+    int64(s64),
+    uint8(u8),
+    uint16(u16),
+    uint32(u32),
+    uint64(u64),
+    floating32(float32),
+    floating64(float64),
+    str(string),
+    binary(list<u8>),
+    db-null,
+  }
+
+  record column {
+    name: string,
+    data-type: db-data-type,
+  }
+
+  type row = list<db-value>
+
+  record row-set {
+    columns: list<column>,
+    rows: list<row>,
+  }
+}
+
+interface mysql {
+  use rdbms-types.{parameter-value, row-set}
+
+  variant mysql-error {
+    success,
+    connection-failed(string),
+    bad-parameter(string),
+    query-failed(string),
+    value-conversion-failed(string),
+    other-error(string),
+  }
+
+  query: func(address: string, statement: string, params: list<parameter-value>) -> result<row-set, mysql-error>
+
+  execute: func(address: string, statement: string, params: list<parameter-value>) -> result<_, mysql-error>
+}
+
+interface postgres {
+  use rdbms-types.{parameter-value, row-set}
+
+  variant pg-error {
+    success,
+    connection-failed(string),
+    bad-parameter(string),
+    query-failed(string),
+    value-conversion-failed(string),
+    other-error(string),
+  }
+
+  query: func(address: string, statement: string, params: list<parameter-value>) -> result<row-set, pg-error>
+
+  execute: func(address: string, statement: string, params: list<parameter-value>) -> result<u64, pg-error>
+}
+
+interface redis-types {
+  enum error {
+    success,
+    error,
+  }
+
+  type payload = list<u8>
+
+  variant redis-parameter {
+    int64(s64),
+    binary(payload),
+  }
+
+  variant redis-result {
+    nil,
+    status(string),
+    int64(s64),
+    binary(payload),
+  }
+}
+
+interface inbound-redis {
+  use redis-types.{payload, error}
+
+  handle-message: func(message: payload) -> result<_, error>
+}
+
+interface redis {
+  use redis-types.{payload, redis-parameter, redis-result, error}
+
+  publish: func(address: string, channel: string, payload: payload) -> result<_, error>
+
+  get: func(address: string, key: string) -> result<payload, error>
+
+  set: func(address: string, key: string, value: payload) -> result<_, error>
+
+  incr: func(address: string, key: string) -> result<s64, error>
+
+  del: func(address: string, keys: list<string>) -> result<s64, error>
+
+  sadd: func(address: string, key: string, values: list<string>) -> result<s64, error>
+
+  smembers: func(address: string, key: string) -> result<list<string>, error>
+
+  srem: func(address: string, key: string, values: list<string>) -> result<s64, error>
+
+  execute: func(address: string, command: string, arguments: list<redis-parameter>) -> result<list<redis-result>, error>
+}
+
+interface sqlite {
+  type connection = u32
+
+  variant error {
+    no-such-database,
+    access-denied,
+    invalid-connection,
+    database-full,
+    io(string),
+  }
+
+  variant value {
+    integer(s64),
+    real(float64),
+    text(string),
+    blob(list<u8>),
+    null,
+  }
+
+  record row-result {
+    values: list<value>,
+  }
+
+  record query-result {
+    columns: list<string>,
+    rows: list<row-result>,
+  }
+
+  open: func(database: string) -> result<connection, error>
+
+  execute: func(conn: connection, statement: string, parameters: list<value>) -> result<query-result, error>
+
+  close: func(conn: connection)
+}
+
+world reactor {
+  import config
+  import rdbms-types
+  import postgres
+  import mysql
+  import sqlite
+  import redis-types
+  import redis
+  import key-value
+  import http-types
+  import http
+
+  export inbound-http
+  export inbound-redis
+}
+world redis-trigger {
+  import config
+  import rdbms-types
+  import postgres
+  import mysql
+  import sqlite
+  import redis-types
+  import redis
+  import key-value
+  import http-types
+  import http
+
+  export inbound-redis
+}
+world http-trigger {
+  import config
+  import rdbms-types
+  import postgres
+  import mysql
+  import sqlite
+  import redis-types
+  import redis
+  import key-value
+  import http-types
+  import http
+
+  export inbound-http
+}

@@ -16,12 +16,22 @@ bytes = "1"
 # General-purpose crate with common HTTP types.
 http = "0.2"
 # The Spin SDK.
-spin-sdk = { git = "https://github.com/fermyon/spin", tag = "v1.5.0" }
-wit-bindgen = { version = "0.5.0", default_features = false }
+# spin-sdk = { git = "https://github.com/fermyon/spin", tag = "v1.5.0" }
+serde = { version = "1.0.173", features = ["serde_derive"] }
+serde_qs = "0.12.0"
+wit-bindgen.workspace = true
 cargo-component-bindings = { git = "https://github.com/bytecodealliance/cargo-component" }
+# wasmtime = { workspace = true }
+# wasmtime-wasi = { workspace = true }
+# wit-bindgen-core = { workspace = true }
+# wit-bindgen-rust = { workspace = true }
+# wit-component = { workspace = true }
 
-[workspace]
+# [package.metadata.component.target]
+# path = "../wit/calculator.wit"
+# world = "app"
 
-[package.metadata.component.target]
-path = "../wit/calculator.wit"
-world = "app"
+[package.metadata.component]
+
+[package.metadata.component.dependencies]
+"docs:calculator" = { path = "../target/wasm32-wasi/release/calculator.wasm" }

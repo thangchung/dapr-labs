@@ -27,7 +27,7 @@ Caused by:
 >
 > wasm-tools component wit -t composed.wasm
 > wasm-tools compose spin-app/target/wasm32-wasi/release/spin_app.wasm -d composed.wasm -o spin_app.wasm
-> wasm-tools component new spin_app.wasm --adapt wasi_snapshot_preview1.command.wasm -o spin_app_adapted.wasm
+> wasm-tools component new spin_app.wasm --adapt wasi_snapshot_preview1.reactor.wasm -o spin_app_adapted.wasm
 ```
 
 ## Refs

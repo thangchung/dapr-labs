@@ -7,7 +7,11 @@ version = "0.1.0"
 
 [[component]]
 id = "spin-app"
-source = "spin_app.wasm"
+source = "dist/spin_app.wasm"
 allowed_http_hosts = []
+
 [component.trigger]
 route = "/..."
+
+[component.build]
+command = "./build.sh"

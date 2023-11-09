@@ -1,8 +1,12 @@
 {
-    "name": "coffeeshop-polyglot",
+    "name": "Polyglot Apps",
     "build": {
         "dockerfile": "Dockerfile-dev"
     },
+    "runArgs": [
+        "--privileged",
+        "--init"
+    ],
     "otherPortsAttributes": {
         "onAutoForward": "ignore"
     },
@@ -30,42 +34,16 @@
                 "ms-dotnettools.csharp",
                 "alexcvzz.vscode-sqlite",
                 "qwtel.sqlite-viewer",
-                "kennylong.kubernetes-yaml-formatter"
+                "kennylong.kubernetes-yaml-formatter",
+                "ms-azuretools.vscode-dapr"
             ]
         }
     },
-    // "extensions": [
-    //     "mutantdino.resourcemonitor",
-    //     "humao.rest-client",
-    //     // "bungcip.better-toml",
-    //     "ms-vscode.makefile-tools",
-    //     "davidanson.vscode-markdownlint",
-    //     "cweijan.vscode-database-client2",
-    //     "bierner.markdown-mermaid",
-    //     "ms-kubernetes-tools.vscode-kubernetes-tools",
-    //     //rust
-    //     "vadimcn.vscode-lldb",
-    //     "rust-lang.rust-analyzer",
-    //     "tamasfe.even-better-toml",
-    //     "serayuzgur.crates",
-    //     "esbenp.prettier-vscode",
-    //     "foxundermoon.shell-format",
-    //     "irongeek.vscode-env",
-    //     "golang.Go",
-    //     "ms-dotnettools.vscode-dotnet-runtime",
-    //     "ms-dotnettools.csharp",
-    //     "alexcvzz.vscode-sqlite",
-    //     "qwtel.sqlite-viewer",
-    //     "kennylong.kubernetes-yaml-formatter"
-    // ],
-    "postCreateCommand": "dotnet --list-sdks",
+    "postCreateCommand": "bash ./.devcontainer/post-create.sh",
     "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {
-            "moby": false
-        },
-        "ghcr.io/dapr/cli/dapr-cli:0": {
-            "version": "1.11.0-rc.2"
-        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+        "ghcr.io/rio/features/k3d:1": {},
         "ghcr.io/devcontainers/features/common-utils:2": {
             "configureZshAsDefaultShell": true
         }

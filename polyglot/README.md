@@ -15,19 +15,7 @@ DAPR_URL=http://localhost:3500
 Then, run commands below
 
 ```sh
-make run-product-dapr
-```
-
-```sh
-make run-counter-dapr
-```
-
-```sh
-make run-barista-dapr
-```
-
-```sh
-make run-kitchen-dapr
+make -j run-all-dapr
 ```
 
 Then, playing around with it at [client.local.http](client.local.http)!

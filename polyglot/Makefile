@@ -1,10 +1,14 @@
 include .env
 export
 
+.PHONY: run-product
 run-product:
 	cd product-api && spin build && spin up --listen 0.0.0.0:5001 && cd -
-.PHONY: run-product
 
+.PHONY: run-all-dapr
+run-all-dapr: run-product-dapr run-counter-dapr run-barista-dapr run-kitchen-dapr
+
+.PHONY: run-product-dapr
 run-product-dapr:
 	cd product-api && \
 	spin build && \
@@ -15,8 +19,8 @@ run-product-dapr:
     --config ../components/daprConfig.yaml \
     -- spin up --listen 0.0.0.0:5001 && \
 	cd -
-.PHONY: run-product-dapr
 
+.PHONY: run-counter-dapr
 run-counter-dapr:
 	dapr run \
     --app-id counterapi \
@@ -26,8 +30,8 @@ run-counter-dapr:
     --config components/daprConfig.yaml \
     -- dotnet run --project counter-api/counter-api.csproj \
 	cd -
-.PHONY: run-counter-dapr
 
+.PHONY: run-barista-dapr
 run-barista-dapr:
 	cd barista-api && \
 	spin build && \
@@ -38,8 +42,8 @@ run-barista-dapr:
     --config ../components/daprConfig.yaml \
     -- spin up --listen 0.0.0.0:5003 --env DAPR_URL=${DAPR_URL} && \
 	cd -
-.PHONY: run-barista-dapr
 
+.PHONY: run-kitchen-dapr
 run-kitchen-dapr:
 	cd kitchen-api && \
 	spin build && \
@@ -50,22 +54,21 @@ run-kitchen-dapr:
     --config ../components/daprConfig.yaml \
     -- spin up --listen 0.0.0.0:5004 --env DAPR_URL=${DAPR_URL} && \
 	cd -
-.PHONY: run-kitchen-dapr
 
+.PHONY: docker-build-product
 docker-build-product:
     cd product-api && \
     docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/product-api-spin:1.0.0 . --push && \
     cd -
-.PHONY: docker-build-product
 
+.PHONY: docker-build-barista
 docker-build-barista:
     cd barista-api && \
     docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/barista-api-spin:1.0.0 . --push && \
     cd -
-.PHONY: docker-build-barista
 
+.PHONY: docker-build-kitchen
 docker-build-kitchen:
     cd kitchen-api && \
     docker buildx build -f Dockerfile --platform wasi/wasm,linux/amd64,linux/arm64 -t ghcr.io/thangchung/dapr-labs/kitchen-api-spin:1.0.0 . --push && \
     cd -
-.PHONY: docker-build-kitchen

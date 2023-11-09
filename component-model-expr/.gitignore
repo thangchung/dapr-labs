@@ -7,3 +7,4 @@ examples/**/Cargo.lock
 .DS_Store
 postgres-data
 dist/
+tmp/

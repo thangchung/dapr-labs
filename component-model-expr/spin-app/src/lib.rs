@@ -2,7 +2,8 @@ wit_bindgen::generate!("http-trigger" in "../wit/deps/spin");
 
 // mod calculator;
 
-use bindings::calculator_calculate::{Op, eval_expression};
+use bindings::docs::calculator::calculate::{Op, eval_expression};
+// use bindings::calculator_calculate::{Op, eval_expression};
 // use bindings::docs::calculator::calculate::{eval_expression, Op};
 // use bindings::exports::docs::calculator::calculate::Guest;
 use exports::fermyon::spin::inbound_http::{self, Request, Response};
@@ -34,7 +35,7 @@ fn calculate(s: SpinHttp, req: fermyon::spin::http_types::Request) -> Result<Res
         _ => anyhow::bail!("Unknown operation: {}", params.op)
     };
 
-    let result = eval_expression(op, params.x, params.y);
+    let result = eval_expression(op, 1, 2);
 
     Ok(Response {
         status: 200,

@@ -27,11 +27,11 @@ cargo-component-bindings = { git = "https://github.com/bytecodealliance/cargo-co
 # wit-bindgen-rust = { workspace = true }
 # wit-component = { workspace = true }
 
-# [package.metadata.component.target]
-# path = "../wit/calculator.wit"
-# world = "app"
+[package.metadata.component.target]
+path = "../wit/calculator.wit"
+world = "app"
 
 [package.metadata.component]
 
-[package.metadata.component.dependencies]
-"docs:calculator" = { path = "../target/wasm32-wasi/release/calculator.wasm" }
+# [package.metadata.component.dependencies]
+# "docs:calculator" = { path = "../calculator/target/wasm32-wasi/release/calculator.wasm" }

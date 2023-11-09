@@ -1,0 +1,1 @@
+# wget --no-clobber https://github.com/bytecodealliance/componentize-py/raw/67aa9be2627fde0b4e719384b29717a79441d3e6/adapters/2ad057d/wasi_snapshot_preview1.reactor.wasm

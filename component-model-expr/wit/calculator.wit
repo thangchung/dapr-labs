@@ -4,11 +4,11 @@ interface calculate {
     enum op {
         add,
     }
-    eval-expression: func(op: op, x: s32, y: s32) -> s32
+    eval-expression: func(op: op, x: u32, y: u32) -> u32
 }
 
 interface add {
-  add: func(a: s32, b: s32) -> s32 
+  add: func(a: u32, b: u32) -> u32 
 }
 
 world adder {

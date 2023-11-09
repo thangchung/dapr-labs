@@ -26,8 +26,13 @@ Caused by:
 ```sh
 >
 > wasm-tools component wit -t composed.wasm
+
+> wasm-tools compose target/wasm32-wasi/release/calculator.wasm -d target/wasm32-wasi/release/adder.wasm -o calculator_composed.wasm
+> wasm-tools compose -c config.yml target/wasm32-wasi/release/spin_app.wasm -d calculator_composed.wasm -o spin_app_command.wasm
+
 > wasm-tools compose spin-app/target/wasm32-wasi/release/spin_app.wasm -d composed.wasm -o spin_app.wasm
-> wasm-tools component new spin_app.wasm --adapt wasi_snapshot_preview1.reactor.wasm -o spin_app_adapted.wasm
+
+> wasm-tools component new target/wasm32-wasi/release/spin_app.wasm --adapt wasi_snapshot_preview1.command.wasm -o spin_app_command_adapted.wasm
 ```
 
 ## Refs

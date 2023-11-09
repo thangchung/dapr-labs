@@ -21,7 +21,8 @@ done
 ## Install Dapr and init
 wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash -s 1.12.0
 dapr uninstall # clean if needed
-dapr init -k
+dapr init # local
+dapr init -k # k8s
 
 ## dotnet
 dotnet --list-sdks

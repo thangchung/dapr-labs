@@ -27,17 +27,3 @@ RUN spin plugin install -y -u https://raw.githubusercontent.com/chrismatteson/sp
 RUN spin templates install --git https://github.com/radu-matei/spin-kv-explorer --update
 RUN spin templates install --git https://github.com/radu-matei/spin-nextjs --update
 
-# k8s
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    chmod +x ./kubectl && \
-    mv ./kubectl /usr/local/bin/kubectl
-
-# kind
-RUN [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.19.0/kind-linux-amd64 && \
-    chmod +x ./kind && \
-    mv ./kind /usr/local/bin/kind
-
-# helm
-RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && \
-    chmod 700 get_helm.sh && \
-    ./get_helm.sh

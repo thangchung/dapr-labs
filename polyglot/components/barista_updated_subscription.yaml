@@ -6,3 +6,5 @@ spec:
   topic: baristaorderupdated
   route: /dapr_subscribe_BaristaOrderUpdated
   pubsubname: baristapubsub
+# scopes:
+#   - outboxtest

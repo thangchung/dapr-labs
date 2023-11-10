@@ -5,8 +5,8 @@ export
 run-product:
 	cd product-api && spin build && spin up --listen 0.0.0.0:5001 && cd -
 
-.PHONY: run-all-dapr
-run-all-dapr: run-product-dapr run-counter-dapr run-barista-dapr run-kitchen-dapr
+.PHONY: daprized-apps
+daprized-apps: run-product-dapr run-counter-dapr run-barista-dapr run-kitchen-dapr
 
 .PHONY: run-product-dapr
 run-product-dapr:

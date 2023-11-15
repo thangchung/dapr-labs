@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0.100-rc.2-jammy
+FROM mcr.microsoft.com/dotnet/sdk:8.0.100-jammy
 
 RUN apt-get update && apt-get install -y \
     bash                                 \

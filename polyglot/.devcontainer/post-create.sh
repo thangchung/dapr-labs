@@ -24,5 +24,8 @@ dapr uninstall # clean if needed
 dapr init # local
 dapr init -k # k8s
 
+## Install redis
+helm install my-redis oci://registry-1.docker.io/bitnamicharts/redis --set architecture=standalone --set global.redis.password=P@ssw0rd
+
 ## dotnet
 dotnet --list-sdks

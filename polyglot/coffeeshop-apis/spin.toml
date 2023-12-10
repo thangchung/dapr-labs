@@ -1,0 +1,40 @@
+spin_manifest_version = 2
+
+[application]
+name = "coffeeshop-apis"
+version = "0.1.0"
+authors = ["thangchung <thangchung@nomail.com>"]
+description = "Coffeeshop APIs on Spin v2 "
+
+[[trigger.http]]
+route = "/p/..."
+component = "product-api"
+
+[component.product-api]
+source = "product-api/target/wasm32-wasi/release/product_api.wasm"
+allowed_outbound_hosts = []
+[component.product-api.build]
+command = "cargo build --target wasm32-wasi --release"
+workdir = "product-api"
+
+[[trigger.http]]
+route = "/b/..."
+component = "barista-api"
+
+[component.barista-api]
+source = "barista-api/target/wasm32-wasi/release/barista_api.wasm"
+allowed_outbound_hosts = []
+[component.barista-api.build]
+command = "cargo build --target wasm32-wasi --release"
+workdir = "barista-api"
+
+[[trigger.http]]
+route = "/k/..."
+component = "kitchen-api"
+
+[component.kitchen-api]
+source = "kitchen-api/target/wasm32-wasi/release/kitchen_api.wasm"
+allowed_outbound_hosts = []
+[component.kitchen-api.build]
+command = "cargo build --target wasm32-wasi --release"
+workdir = "kitchen-api"

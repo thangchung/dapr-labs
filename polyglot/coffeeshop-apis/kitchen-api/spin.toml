@@ -1,0 +1,18 @@
+spin_manifest_version = 2
+
+[application]
+name = "kitchen-api"
+version = "0.1.0"
+authors = ["thangchung <thangchung@ymail.com>"]
+description = ""
+
+[[trigger.http]]
+route = "/..."
+component = "kitchen-api"
+
+[component.kitchen-api]
+source = "target/wasm32-wasi/release/kitchen_api.wasm"
+allowed_outbound_hosts = []
+[component.kitchen-api.build]
+command = "cargo build --target wasm32-wasi --release"
+watch = ["src/**/*.rs", "Cargo.toml"]

@@ -15,6 +15,7 @@
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.Dapr" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.0.0" />
+    <PackageReference Include="CliWrap" Version="3.7.0" />
   </ItemGroup>
 
   <ItemGroup>

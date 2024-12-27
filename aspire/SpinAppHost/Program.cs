@@ -14,10 +14,10 @@ var pubSub = builder.AddDaprPubSub(
     "pubsub",
     new Aspire.Hosting.Dapr.DaprComponentOptions
     {
-        LocalPath = Directory.GetCurrentDirectory() + "/../dapr/components/pubsub.yaml"
+        LocalPath = Path.Combine("..", "dapr/components/pubsub.yaml")
     }).WaitFor(rmq);
 
-var productApp = builder.AddSpinApp("product-app", workingDirectory: "../test-spin")
+var productApp = builder.AddSpinApp("product-app", workingDirectory: "../test-spin"/*, args: ["--build"]*/)
     .WithHttpEndpoint(name: "http", targetPort: 3000, port: 8080)
     .WithDaprSidecar()
     .WithReference(stateStore)

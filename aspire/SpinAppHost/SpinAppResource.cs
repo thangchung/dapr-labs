@@ -15,12 +15,10 @@ internal static class SpinAppExtensions
     public static IResourceBuilder<SpinAppResource> AddSpinApp(
         this IDistributedApplicationBuilder builder, string name, string command = "up", string workingDirectory = "", string[]? args = null)
     {
-        // builder.Services.TryAddLifecycleHook<TestResourceLifecycleHook>();
-
         var resource = new SpinAppResource(name, workingDirectory);
 
         return builder.AddResource(resource)
-            .BuildAppCommand()
+            .BuildAppCommand(workingDirectory)
             .WithArgs(context =>
             {
                 context.Args.Add(command);
@@ -38,13 +36,13 @@ internal static class SpinAppExtensions
     }
 
     public static IResourceBuilder<SpinAppResource> BuildAppCommand(
-        this IResourceBuilder<SpinAppResource> builder)
+        this IResourceBuilder<SpinAppResource> builder, string workingDirectory)
     {
         builder.WithCommand(
             name: "build",
-            displayName: "Build App",
-            executeCommand: context => OnRunClearCacheCommandAsync(builder, context),
-            iconName: "AnimalRabbitOff",
+            displayName: "Build Spin App",
+            executeCommand: context => OnRunClearCacheCommandAsync(builder, context, workingDirectory),
+            iconName: "BuildingFactory",
             iconVariant: IconVariant.Filled);
 
         return builder;
@@ -52,16 +50,15 @@ internal static class SpinAppExtensions
 
     private static async Task<ExecuteCommandResult> OnRunClearCacheCommandAsync(
         IResourceBuilder<SpinAppResource> builder,
-        ExecuteCommandContext context)
+        ExecuteCommandContext context,
+        string workingDirectory)
     {
         var logger = context.ServiceProvider.GetRequiredService<ResourceLoggerService>().GetLogger(builder.Resource);
         var notificationService = context.ServiceProvider.GetRequiredService<ResourceNotificationService>();
 
-        var path = Path.Combine("..", "test-spin");
-
         await Task.Run(async () =>
         {
-            var cmd = Cli.Wrap("spin").WithArguments(["build"]).WithWorkingDirectory(path);
+            var cmd = Cli.Wrap("spin").WithArguments(["build"]).WithWorkingDirectory(workingDirectory);
             var cmdEvents = cmd.ListenAsync();
 
             await foreach (var cmdEvent in cmdEvents)
@@ -87,41 +84,3 @@ internal static class SpinAppExtensions
         return CommandResults.Success();
     }
 }
-
-//internal sealed class TestResourceLifecycleHook(ResourceNotificationService notificationService) : IDistributedApplicationLifecycleHook
-//{
-//    public async Task BeforeStartAsync(DistributedApplicationModel appModel, CancellationToken cancellationToken)
-//    {
-//        foreach (var resource in appModel.Resources.OfType<SpinAppResource>())
-//        {
-//            //Task.Run(
-//            //    async () =>
-//            //    {
-//            //        // await Task.Delay(TimeSpan.FromSeconds(10));
-
-//            //        var urls = new List<string> { "http://localhost:3000" };
-
-//            //        await notificationService.PublishUpdateAsync(
-//            //            resource,
-//            //            state => state with
-//            //            {
-//            //                State = new("Running", "success"),
-//            //                Urls = [.. urls.Select(u => new UrlSnapshot(u, u, IsInternal: false))]
-//            //            });
-//            //    },
-//            //cancellationToken);
-
-//            var urls = new List<string> { "http://127.0.0.1:3000" };
-
-//            await notificationService.PublishUpdateAsync(
-//                resource,
-//                state => state with
-//                {
-//                    State = new("Running", "success"),
-//                    Urls = [.. urls.Select(u => new UrlSnapshot(u, u, IsInternal: false))]
-//                });
-//        }
-
-//        // return Task.CompletedTask;
-//    }
-//}

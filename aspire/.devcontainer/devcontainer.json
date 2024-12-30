@@ -27,10 +27,5 @@
             ]
         }
     },
-    "postCreateCommand": "dotnet --list-sdks",
-    "features": {
-        "ghcr.io/dapr/cli/dapr-cli:0": {
-            "version": "1.14.1"
-        }
-    }
+    "postCreateCommand": "dotnet --list-sdks"
 }

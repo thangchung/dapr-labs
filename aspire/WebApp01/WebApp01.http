@@ -9,3 +9,12 @@ GET {{WebApp01_HostAddress}}/item-types/
 Accept: application/json
 
 ###
+
+POST {{WebApp01_HostAddress}}/ping/
+Accept: application/json
+
+{
+
+}
+
+###

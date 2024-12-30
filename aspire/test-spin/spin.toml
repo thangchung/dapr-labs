@@ -6,13 +6,16 @@ version = "0.1.0"
 authors = ["thangchung <thangchung@nomail.com>"]
 description = ""
 
+[variables]
+dapr_url = { default = "http://localhost:3500" }
+
 [[trigger.http]]
 route = "/..."
 component = "test-spin"
 
 [component.test-spin]
 source = "target/wasm32-wasip1/release/test_spin.wasm"
-allowed_outbound_hosts = []
+allowed_outbound_hosts = ["{{ dapr_url }}"]
 [component.test-spin.build]
 command = "cargo build --target wasm32-wasip1 --release"
 watch = ["src/**/*.rs", "Cargo.toml"]

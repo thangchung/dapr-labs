@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use bytes::Bytes;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use spin_sdk::http::{
@@ -9,15 +10,7 @@ use spin_sdk::http_component;
 use uuid::Uuid;
 
 const DAPR_URL_ENV: &str = "dapr_url";
-// const PUB_SUB_NAME: &str = "pubsub";
-
-// #[derive(Debug, Serialize, Clone)]
-// #[serde(rename_all = "camelCase")]
-// struct SubscribeModel {
-//     pubsubname: String,
-//     topic: String,
-//     route: String,
-// }
+const PUB_SUB_NAME: &str = "pubsub";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -113,7 +106,7 @@ fn get_item_types() -> Vec<ItemType> {
 fn get_dapr_subscribe_handler(_: Request, _params: Params) -> Result<impl IntoResponse> {
     let model = json!([
         {
-            "pubsubname": "pubsub",
+            "pubsubname": PUB_SUB_NAME,
             "topic": "pinged",
             "routes": {
               "rules": [
@@ -146,11 +139,11 @@ async fn post_ping_handler(req: Request, _params: Params) -> Result<impl IntoRes
             .build());
     };
 
-    println!("Pinged event: {:?}", model);
+    log(&model);
 
     pub_ponged(
         dapr_url.as_str(),
-        "pubsub",
+        PUB_SUB_NAME,
         "ponged",
         Ponged { id: model.id },
     ).await;
@@ -164,8 +157,8 @@ async fn post_ping_handler(req: Request, _params: Params) -> Result<impl IntoRes
 
 async fn pub_ponged(dapr_url: &str, pubsub_name: &str, topic: &str, e: Ponged) {
     let url = format!("{}/v1.0/publish/{}/{}", dapr_url, pubsub_name, topic);
-    println!("url: {}", url);
-    println!("Ponged event: {:?}", e);
+    log(&url);
+    log(&e);
 
     let body = bytes::Bytes::from(json!(e).to_string());
     let result = spin_sdk::http::send::<_, Response>(
@@ -176,4 +169,10 @@ async fn pub_ponged(dapr_url: &str, pubsub_name: &str, topic: &str, e: Ponged) {
     );
 
     println!("result: {:?}", result.await.unwrap());
+}
+
+fn log<T: std::fmt::Debug>(msg: &T) {
+    let dt: DateTime<Utc> = std::time::SystemTime::now().into();
+    let dt = dt.format("%H:%M:%S.%f").to_string();
+    println!("{:?}: {:?}", dt, msg);
 }

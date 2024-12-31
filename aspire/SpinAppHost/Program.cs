@@ -1,5 +1,4 @@
 using Aspire.Hosting.Dapr;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SpinAppHost;
 
@@ -27,19 +26,10 @@ var productApp = builder.AddSpinApp("product-app", workingDirectory: Path.Combin
     .WithReference(stateStore)
     .WithReference(pubSub);
 
-var webapp01 = builder.AddProject<Projects.WebApp01>("webapp01")
+var webapp = builder.AddProject<Projects.WebApp>("webapp")
     .WithDaprSidecar(o => o.WithOptions(new DaprSidecarOptions { DaprHttpPort = 3500 }))
     .WithReference(stateStore)
     .WithReference(pubSub)
     .WaitFor(productApp);
-
-// Workaround for https://github.com/dotnet/aspire/issues/2219
-if (builder.Configuration.GetValue<string>("DAPR_CLI_PATH") is { } daprCliPath)
-{
-    builder.Services.Configure<DaprOptions>(options =>
-    {
-        options.DaprPath = daprCliPath;
-    });
-}
 
 builder.Build().Run();

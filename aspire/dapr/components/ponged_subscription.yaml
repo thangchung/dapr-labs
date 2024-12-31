@@ -1,8 +1,0 @@
-apiVersion: dapr.io/v2alpha1
-kind: Subscription
-metadata:
-  name: ponged-subscription
-spec:
-  topic: ponged
-  route: /dapr_subscribe_Ponged
-  pubsubname: pubsub

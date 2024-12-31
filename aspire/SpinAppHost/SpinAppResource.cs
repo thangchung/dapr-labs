@@ -41,14 +41,14 @@ internal static class SpinAppExtensions
         builder.WithCommand(
             name: "build",
             displayName: "Build Spin App",
-            executeCommand: context => OnRunClearCacheCommandAsync(builder, context, workingDirectory),
+            executeCommand: context => OnRunReBuildSpinAppCommandAsync(builder, context, workingDirectory),
             iconName: "BuildingFactory",
             iconVariant: IconVariant.Filled);
 
         return builder;
     }
 
-    private static async Task<ExecuteCommandResult> OnRunClearCacheCommandAsync(
+    private static async Task<ExecuteCommandResult> OnRunReBuildSpinAppCommandAsync(
         IResourceBuilder<SpinAppResource> builder,
         ExecuteCommandContext context,
         string workingDirectory)
@@ -72,10 +72,10 @@ internal static class SpinAppExtensions
                         await notificationService.PublishUpdateAsync(builder.Resource, state => state with { State = "Finished" });
                         break;
                     case StandardOutputCommandEvent stdOut:
-                        logger.LogInformation("External container {ResourceName} stdout: {StdOut}", builder.Resource.Name, stdOut.Text);
+                        logger.LogInformation("{ResourceName} stdout: {StdOut}", builder.Resource.Name, stdOut.Text);
                         break;
                     case StandardErrorCommandEvent stdErr:
-                        logger.LogInformation("External container {ResourceName} stderr: {StdErr}", builder.Resource.Name, stdErr.Text);
+                        logger.LogInformation("{ResourceName} stderr: {StdErr}", builder.Resource.Name, stdErr.Text);
                         break;
                 }
             }

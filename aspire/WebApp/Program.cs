@@ -1,9 +1,13 @@
 using Dapr;
 using Dapr.Client;
+using Scalar.AspNetCore;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors();
 
 builder.AddServiceDefaults();
 
@@ -26,7 +30,10 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
+
+app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.UseRouting();
 
@@ -34,8 +41,12 @@ app.UseCloudEvents();
 
 app.MapSubscribeHandler();
 
+app.MapGet("/", () => Results.Redirect("/scalar/v1"))
+    .ExcludeFromDescription();
+
 app.MapGet("/item-types", async (DaprClient client) =>
 {
+    //todo: remove hard-code app-name
     var res = await client.InvokeMethodAsync<List<ItemTypeDto>>(HttpMethod.Get, "product-app", "v1-get-item-types");
 
     var curActivity = Activity.Current;
@@ -55,9 +66,12 @@ app.MapPost("/pong", [Topic("pubsub", "ponged")] async (Pong pong) =>
 {
     Console.WriteLine($"Pong received: {pong.Id}");
     return Results.Ok();
-});
+}).ExcludeFromDescription();
 
 app.Run();
 
 internal record ItemTypeDto(string Name, int ItemType, float Price, string Image);
 internal record Pong(Guid Id);
+
+[ExcludeFromCodeCoverage]
+public partial class Program;

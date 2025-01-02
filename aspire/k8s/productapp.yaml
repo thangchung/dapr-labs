@@ -1,0 +1,16 @@
+apiVersion: core.spinkube.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: product-app
+spec:
+  image: "ttl.sh/thangchung-test-spin:1h"
+  executor: containerd-shim-spin
+  replicas: 1
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "product-app"
+    dapr.io/app-port: "80"
+    dapr.io/enable-api-logging: "true"
+  variables:
+  - name: dapr_url
+    value: http://localhost:3500

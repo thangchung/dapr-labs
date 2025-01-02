@@ -6,6 +6,10 @@
 spin registry push ttl.sh/thangchung-test-spin:1h --build
 ```
 
+```sh
+dotnet publish ./WebApp/WebApp.csproj --os linux --arch x64 /t:PublishContainer -c Release
+```
+
 ## Refs
 
 - [distributed-todo-app](https://github.com/fermyon/enterprise-architectures-and-patterns/tree/main/distributed-todo-app)
@@ -16,4 +20,3 @@ spin registry push ttl.sh/thangchung-test-spin:1h --build
   - https://github.com/fvandillen/futuretech-dapr-aspire/blob/main/Futuretech/Futuretech.AppHost/Program.cs
   - https://github.com/fvandillen/dapr-aspire/blob/main/DaprAspire/DaprAspire.AppHost/Program.cs
 - https://anthonysimmon.com/referencing-external-docker-containers-dotnet-aspire-custom-resources/
-

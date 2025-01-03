@@ -20,6 +20,10 @@ spec:
       containers:
       - name: webapp
         image: ttl.sh/thangchung-webapp:1h
+        imagePullPolicy: Always
+        env:
+        - name: TestSpinApp
+          value: "test-spin"
         resources:
           # limit the resources to 128Mi of memory and 100m of CPU
           limits:

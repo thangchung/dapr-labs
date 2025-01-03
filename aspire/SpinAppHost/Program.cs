@@ -16,10 +16,10 @@ var pubSub = builder.AddDaprPubSub(
     "pubsub",
     new DaprComponentOptions
     {
-        LocalPath = Path.Combine("..", "dapr" , "components", "pubsub.yaml")
+        LocalPath = Path.Combine("..", "dapr" , "components", "pubsub-rabbitmq.yaml")
     }).WaitFor(rmq);
 
-var productApp = builder.AddSpinApp("product-app", workingDirectory: Path.Combine("..", "test-spin"), 
+var testSpinApp = builder.AddSpinApp("test-spin", workingDirectory: Path.Combine("..", "test-spin"), 
     args: ["--env", $"dapr_url=http://localhost:3500"])
     .WithHttpEndpoint(name: "http", targetPort: 3000, port: 8080)
     .WithDaprSidecar()
@@ -30,6 +30,6 @@ var webapp = builder.AddProject<Projects.WebApp>("webapp")
     .WithDaprSidecar(o => o.WithOptions(new DaprSidecarOptions { DaprHttpPort = 3500 }))
     .WithReference(stateStore)
     .WithReference(pubSub)
-    .WaitFor(productApp);
+    .WaitFor(testSpinApp);
 
 builder.Build().Run();

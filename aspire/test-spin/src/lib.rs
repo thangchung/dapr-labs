@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -6,7 +7,8 @@ use spin_sdk::http::{
 };
 use spin_sdk::{http_component, variables};
 use uuid::Uuid;
-use log::info;
+use log::*;
+use simple_logger::SimpleLogger;
 
 const PUB_SUB_NAME: &str = "pubsub";
 
@@ -40,11 +42,26 @@ impl TryFrom<&[u8]> for Pinged {
     }
 }
 
+fn init_logger() -> Result<()> {
+    const LOG_LEVEL_CONFIG_VARIABLE: &str = "loglevel";
+
+    let level: LevelFilter = variables::get(LOG_LEVEL_CONFIG_VARIABLE)?
+        .parse()
+        .map_err(|e| anyhow!("parsing log level: {e}"))?;
+
+    SimpleLogger::new()
+        .with_level(level)
+        .init()?;
+
+    Ok(())
+}
+
 /// A simple Spin HTTP component.
 #[http_component]
 fn handle_test_spin(req: Request) -> anyhow::Result<impl IntoResponse> {
-    info!("Handling request to {:?}", req.header("spin-full-url"));
-    env_logger::init();
+    //info!("Handling request to {:?}", req.header("spin-full-url"));
+    info!("method={}, uri={}", req.method(), req.uri());
+    init_logger()?;
     let mut router = Router::default();
     router.get("/", get_home_handler);
     router.get("/v1-get-item-types", get_item_types_handler);
@@ -116,6 +133,7 @@ fn get_dapr_subscribe_handler(_: Request, _params: Params) -> Result<impl IntoRe
 
 async fn post_ping_handler(req: Request, _params: Params) -> Result<impl IntoResponse> {
     let dapr_url = variables::get("dapr_url")?;
+    info!("# dapr_url: {}", dapr_url);
 
     let Ok(model) = Pinged::try_from(req.body()) else {
         return Ok(Response::builder()
@@ -124,7 +142,7 @@ async fn post_ping_handler(req: Request, _params: Params) -> Result<impl IntoRes
             .build());
     };
 
-    tracing::info!(name: "completed", "post_ping_handler: {:?}", json!(model).to_string());
+    info!("post_ping_handler: {:?}", json!(model).to_string());
 
     pub_ponged(
         dapr_url.as_str(),
@@ -142,8 +160,8 @@ async fn post_ping_handler(req: Request, _params: Params) -> Result<impl IntoRes
 
 async fn pub_ponged(dapr_url: &str, pubsub_name: &str, topic: &str, e: Ponged) {
     let url = format!("{}/v1.0/publish/{}/{}", dapr_url, pubsub_name, topic);
-    tracing::info!(name: "completed", "pub_ponged: {:?}", url.to_string());
-    tracing::info!(name: "completed", "pub_ponged: {:?}", json!(e).to_string());
+    info!("pub_ponged: {:?}", url.to_string());
+    info!("pub_ponged: {:?}", json!(e).to_string());
 
     let body = bytes::Bytes::from(json!(e).to_string());
     let result = spin_sdk::http::send::<_, Response>(
@@ -154,12 +172,5 @@ async fn pub_ponged(dapr_url: &str, pubsub_name: &str, topic: &str, e: Ponged) {
     );
 
     let result_unwrapped = result.await.unwrap();
-    tracing::info!(name: "completed", "pub_ponged result: {:?}", result_unwrapped.body());
-    // info!("pub_ponged result: {}", json!(result_unwrapped.body()).to_string());
+    info!("pub_ponged result: {:?}", result_unwrapped.body());
 }
-
-// fn log<T: std::fmt::Debug>(msg: &T) {
-//     let dt: DateTime<Utc> = std::time::SystemTime::now().into();
-//     let dt = dt.format("%H:%M:%S.%f").to_string();
-//     info!("{:?}: {:?}", dt, msg);
-// }

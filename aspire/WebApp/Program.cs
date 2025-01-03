@@ -44,10 +44,12 @@ app.MapSubscribeHandler();
 app.MapGet("/", () => Results.Redirect("/scalar/v1"))
     .ExcludeFromDescription();
 
-app.MapGet("/item-types", async (DaprClient client) =>
+app.MapGet("/item-types", async (DaprClient client, IConfiguration config) =>
 {
-    //todo: remove hard-code app-name
-    var res = await client.InvokeMethodAsync<List<ItemTypeDto>>(HttpMethod.Get, "product-app", "v1-get-item-types");
+    var res = await client.InvokeMethodAsync<List<ItemTypeDto>>(
+        HttpMethod.Get, 
+        config.GetValue<string>("TestSpinApp"), 
+        "v1-get-item-types");
 
     var curActivity = Activity.Current;
     curActivity?.AddBaggage("method-name", "item-types");

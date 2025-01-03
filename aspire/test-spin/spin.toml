@@ -8,6 +8,7 @@ description = ""
 
 [variables]
 dapr_url = { default = "http://localhost:3500" }
+loglevel = { default = "info" }
 
 [[trigger.http]]
 route = "/..."
@@ -19,6 +20,7 @@ allowed_outbound_hosts = ["{{ dapr_url }}"]
 
 [component.test-spin.variables]
 dapr_url = "{{ dapr_url }}"
+loglevel = "{{ loglevel }}"
 
 [component.test-spin.build]
 command = "cargo build --target wasm32-wasip1 --release"

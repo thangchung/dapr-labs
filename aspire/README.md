@@ -1,5 +1,13 @@
 # Get starting
 
+## Spin and .NET apps with Dapr on .NET Aspire (DevEx)
+
+![](assets/dotnetaspire_spin_dapr.png)
+
+## Spin and .NET apps with SpinKube on AKS
+
+![](assets/aks_spinkube_spin_dapr.png)
+
 ## Push wasm directly to registry
 
 ```sh

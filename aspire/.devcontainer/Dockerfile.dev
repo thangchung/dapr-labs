@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0.101-noble
+
+RUN apt-get update && apt-get install -y \
+    bash                                 \
+    git                                  \
+    curl                                 \
+    nodejs                               \
+    npm                                  \
+    golang-go                            \
+    build-essential libssl-dev pkg-config\
+    glibc-source                         \
+    ca-certificates
+
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup target add wasm32-wasip1
+
+# Install Spin and required plugins
+RUN curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash && mv spin /usr/local/bin/
+RUN spin plugin install js2wasm -y

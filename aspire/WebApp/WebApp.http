@@ -1,0 +1,15 @@
+# @WebApp01_HostAddress = http://57.155.218.143
+@WebApp01_HostAddress = http://localhost:5000
+
+GET {{WebApp01_HostAddress}}/item-types/
+Accept: application/json
+
+###
+
+POST {{WebApp01_HostAddress}}/ping/
+Accept: application/json
+
+{
+}
+
+###

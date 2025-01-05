@@ -1,0 +1,31 @@
+{
+    "name": "coffeeshop-polyglot",
+    "build": {
+        "dockerfile": "Dockerfile.dev"
+    },
+    "otherPortsAttributes": {
+        "onAutoForward": "ignore"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mutantdino.resourcemonitor",
+                "humao.rest-client",
+                // "bungcip.better-toml",
+                "ms-vscode.makefile-tools",
+                "davidanson.vscode-markdownlint",
+                "bierner.markdown-mermaid",
+                //rust
+                "vadimcn.vscode-lldb",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "serayuzgur.crates",
+                "esbenp.prettier-vscode",
+                "foxundermoon.shell-format",
+                "irongeek.vscode-env",
+                "kennylong.kubernetes-yaml-formatter"
+            ]
+        }
+    },
+    "postCreateCommand": "dotnet --list-sdks"
+}

@@ -1,0 +1,24 @@
+[package]
+name = "test-spin"
+authors = ["thangchung <thangchung@nomail.com>"]
+description = ""
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1"
+spin-sdk = "3.1.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bytes = "1"
+uuid = { version = "1.0", features = ["serde", "v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+cloudevents-sdk = { version = "0.7.0" }
+tracing = { version = "0.1", features = ["log"] }
+log = "*"
+simple_logger = "5.0.0"
+
+[workspace]

@@ -1,0 +1,17 @@
+# need enable app-routing https://learn.microsoft.com/en-us/azure/aks/app-routing
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: store-front
+spec:
+  ingressClassName: webapprouting.kubernetes.azure.com
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: webapp
+            port:
+              number: 5000
+        path: /
+        pathType: Prefix

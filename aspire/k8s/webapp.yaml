@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "webapp"
+        dapr.io/app-port: "8080"
+        dapr.io/enable-api-logging: "true"
+    spec:
+      containers:
+      - name: webapp
+        image: ttl.sh/thangchung-webapp:1h
+        imagePullPolicy: Always
+        env:
+        - name: TestSpinApp
+          value: "test-spin"
+        resources:
+          # limit the resources to 128Mi of memory and 100m of CPU
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+spec:
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 8080
+  selector:
+    app: webapp
